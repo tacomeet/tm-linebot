@@ -68,7 +68,7 @@ def handle_text_message(event):
     ctx = s.get_context(user_id)
 
     # End
-    if ctx in (1, 2) and text == ms.KEY_END:
+    if ctx != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         s.reset(user_id)
     # Start
@@ -161,7 +161,7 @@ def handle_text_message(event):
                     ])))
     else:
         if ctx == 0:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_DEFAULT))
+            line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
 
     if text == 'debug':
         app.logger.info(s.get_type(user_id), s.get_context(user_id))

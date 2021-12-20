@@ -7,15 +7,18 @@ MSG_END = 'お疲れさまでした。またのご利用をお待ちしており
 KEY_SKIP = 'スキップ'
 MSG_SKIP = 'スキップします！'
 
-MSG_DEFAULT = "メッセージありがとうございます！\n" \
-                             "'自己分析': 自己分析のセッションが始まります\n" \
-                             "'記事作成': 誰かに話を聞いたときの振り返りが出来ます\n" \
-                             "'ロールモデル': あなたにおすすめのロールモデルを教えます\n" \
-                             "↑のフレーズどれかを入れてみてください！"
+MSG_DEFAULT = TemplateSendMessage(
+    alt_text='Buttons alt text', template=ButtonsTemplate(
+        title="メッセージありがとうございます！", text="以下の3つのボタンからしたいことを選択してください",
+        actions=[
+            MessageAction(label='自己分析', text='自己分析'),
+            MessageAction(label='記事作成', text='記事作成'),
+            MessageAction(label='ロールモデル', text='ロールモデル'),
+        ]))
 
 # BN Creation
 KEY_BN_CREATE = '作成'
-MSG_BN_CREATE = 'BackNumberの作成を開始します！\n' \
+MSG_BN_CREATE = '記事の作成を開始します！\n' \
                 '「次」と入力して次の質問に行けます！\n' \
                 '「中断」と入力してセッション自体を終了します！'
 MSG_BN_CREATE_1 = '取材の中で印象に残っていることを書き出してみてください！ (5分)\n\n' \
@@ -52,5 +55,3 @@ MSG_BN_CREATE_T3_2 = 'そんな気づきや学びを踏まえて、どのよう�
 
 MSG_BN_CREATE_T5_1 = '自分の考え方とどのように違いましたか？'
 MSG_BN_CREATE_T5_2 = '違う考え方・価値観と出会い、考え方に変化はありましたか？'
-
-
