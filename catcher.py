@@ -92,8 +92,11 @@ cs.register(used_id)
 while True:
     tag, q = cs.get_question(used_id)
     if not tag:
-        print('Sorry, no one can satisfy your needs, right now. Please try again.')
-        sys.exit()
+        if len(cs.cand_by_user[used_id]) == 0:
+            print('Sorry, no one can satisfy your needs, right now. Please try again.')
+            sys.exit()
+        else:
+            rec = random.choice(cs.cand_by_user[used_id])
     text = yes_no()
     print(q, text, tag)
     if text == 'yes':
