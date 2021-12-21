@@ -1,4 +1,6 @@
 import random
+import sys
+
 import requests
 
 import question
@@ -91,6 +93,7 @@ while True:
     tag, q = cs.get_question(used_id)
     if not tag:
         print('Sorry, no one can satisfy your needs, right now. Please try again.')
+        sys.exit()
     text = yes_no()
     print(q, text, tag)
     if text == 'yes':
