@@ -66,7 +66,7 @@ class Catchers:
         cand = self.cand_by_user[used_id]
         new = []
         for c in cand:
-            if tag not in cs.catchers[c].tags:
+            if tag not in self.catchers[c].tags:
                 new.append(c)
         self.cand_by_user[used_id] = new
 
@@ -74,7 +74,7 @@ class Catchers:
         cand = self.cand_by_user[used_id]
         new = []
         for c in cand:
-            if tag in cs.catchers[c].tags:
+            if tag in self.catchers[c].tags:
                 new.append(c)
         self.cand_by_user[used_id] = new
 
@@ -82,31 +82,38 @@ class Catchers:
         return len(self.cand_by_user[used_id]) == 1
 
 
+
+
 def yes_no():
     return random.choice(['yes', 'no'])
 
 
-used_id = 'userid'
-cs = Catchers()
-cs.register(used_id)
-while True:
-    tag, q = cs.get_question(used_id)
-    if not tag:
-        if len(cs.cand_by_user[used_id]) == 0:
-            print('Sorry, no one can satisfy your needs, right now. Please try again.')
-            sys.exit()
+def main():
+    user_id = 'userid'
+    cs = Catchers()
+    cs.register(user_id)
+    while True:
+        tag, q = cs.get_question(user_id)
+        if not tag:
+            if len(cs.cand_by_user[user_id]) == 0:
+                print('Sorry, no one can satisfy your needs, right now. Please try again.')
+                sys.exit()
+            else:
+                rec = random.choice(cs.cand_by_user[user_id])
+        text = yes_no()
+        print(q, text, tag)
+        if text == 'yes':
+            cs.include_tag(user_id, tag)
         else:
-            rec = random.choice(cs.cand_by_user[used_id])
-    text = yes_no()
-    print(q, text, tag)
-    if text == 'yes':
-        cs.include_tag(used_id, tag)
-    else:
-        cs.exclude_tag(used_id, tag)
-    if cs.is_determined(used_id):
-        rec = cs.cand_by_user[used_id]
-        break
+            cs.exclude_tag(user_id, tag)
+        if cs.is_determined(user_id):
+            rec = cs.cand_by_user[user_id]
+            break
 
-print(rec[0])
-print(cs.catchers[rec[0]].age)
-print(cs.catchers[rec[0]].tags)
+    print(rec[0])
+    print(cs.catchers[rec[0]].age)
+    print(cs.catchers[rec[0]].tags)
+
+
+if __name__ == '__main__':
+    main()
