@@ -20,6 +20,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 import session as ss
 import message as ms
+import slack
 import status as st
 
 app = Flask(__name__)
@@ -77,6 +78,15 @@ def handle_text_message(event):
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
         s.set_context(user_id, 2)
         s.set_type(user_id, st.Type.BN_CREATE)
+    elif ctx == 0 and text == ms.KEY_CONTACT:
+        profile = line_bot_api.get_profile(user_id)
+        slack.send_msg(profile.display_name + 'さんからお問い合わせがありました！')
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
+        s.set_context(user_id, 1)
+        s.set_type(user_id, st.Type.CONTACT)
+    elif s.get_type(user_id) == st.Type.CONTACT:
+        profile = line_bot_api.get_profile(user_id)
+        slack.send_msg(profile.display_name + 'さんからのお問い合わせ内容；\n' + text)
     # Next
     elif text == '次':
         msg = route_next(user_id)
