@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 import random
 
@@ -11,11 +10,7 @@ from linebot.exceptions import (
     InvalidSignatureError, LineBotApiError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, ConfirmTemplate, MessageAction, TemplateSendMessage, ButtonsTemplate,
-    URIAction, PostbackAction, CarouselColumn, CarouselTemplate, ImageCarouselTemplate, ImageCarouselColumn,
-    DatetimePickerAction, BubbleContainer, ImageComponent, BoxComponent, TextComponent, IconComponent, ButtonComponent,
-    SeparatorComponent, FlexSendMessage, QuickReply, QuickReplyButton, CameraAction, CameraRollAction, LocationAction,
-    SourceUser,
+    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage,
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -94,42 +89,65 @@ def handle_text_message(event):
         msg.template.text = q
         line_bot_api.push_message(user_id, msg)
         s.set_type(user_id, st.Type.CATCH_REC)
-    # Yes or No
-    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
-        if text == 'Yes':
-            cs.include_tag(user_id, cs.used_tags[user_id][-1])
-        else:
-            cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
-        if cs.is_determined(user_id):
-            msg = ms.MSG_CATCHER_END
-            rec = cs.cand_by_user[user_id][0]
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-            line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
-            s.reset(user_id)
-        else:
-            tag, q = cs.get_question(user_id)
-            if not tag:
-                if len(cs.cand_by_user[user_id]) == 0:
-                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
-                else:
-                    rec = random.choice(cs.cand_by_user[user_id])
-                    msg = ms.MSG_CATCHER_END
-                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-                    line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
-                s.reset(user_id)
-            else:
-                msg = ms.MSG_CATCHER_CONFIRM
-                tag, q = cs.get_question(user_id)
-                msg.alt_text = q
-                msg.template.text = q
-                line_bot_api.reply_message(event.reply_token, msg)
+        s.set_context(user_id, 1)
     elif ctx == 0 and text == ms.KEY_CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg(profile.display_name + 'さんからお問い合わせがありました！')
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
         s.set_context(user_id, 1)
         s.set_type(user_id, st.Type.CONTACT)
-    elif s.get_type(user_id) == st.Type.CONTACT:
+    # RoleModel Matching
+    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
+        if cs.catcher_question[user_id] is None:
+            if text == 'No':
+                cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
+            else:
+                rec = cs.is_determined(user_id)
+                if rec is not None:
+                    cs.catcher_question[user_id] = rec
+                    msg = ms.MSG_CATCHER_CONFIRM
+                    msg.alt_text = ms.MSG_CATCHER_CONFIRM_TEXT
+                    msg.template.text = ms.MSG_CATCHER_CONFIRM_TEXT
+                    line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text="catcher profile",
+                                                                                  contents=ms.get_catcher(rec)))
+                    line_bot_api.push_message(user_id, msg)
+                    return
+        else:
+            if text == 'Yes':
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
+                s.reset(user_id)
+                return
+            elif text == 'No':
+                cs.cand_by_user[user_id].remove(cs.catcher_question[user_id])
+
+            rec = cs.is_determined(user_id)
+            if rec is not None:
+                cs.catcher_question[user_id] = rec
+                msg = ms.MSG_CATCHER_CONFIRM
+                msg.alt_text = ms.MSG_CATCHER_CONFIRM_TEXT
+                msg.template.text = ms.MSG_CATCHER_CONFIRM_TEXT
+                line_bot_api.reply_message(event.reply_token,
+                                           FlexSendMessage(alt_text="catcher profile", contents=ms.get_catcher(rec)))
+                line_bot_api.push_message(user_id, msg)
+                return
+        tag, q = cs.get_question(user_id)
+        if not tag:
+            if len(cs.cand_by_user[user_id]) == 0:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
+            else:
+                rec = random.choice(cs.cand_by_user[user_id])
+                msg = ms.MSG_CATCHER_END
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
+                line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
+            s.reset(user_id)
+        else:
+            cs.catcher_question[user_id] = None
+            msg = ms.MSG_CATCHER_CONFIRM
+            msg.alt_text = q
+            msg.template.text = q
+            line_bot_api.reply_message(event.reply_token, msg)
+    # Contact
+    elif ss_type == st.Type.CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg(profile.display_name + 'さんからのお問い合わせ内容；\n' + text)
     # Next
@@ -151,13 +169,9 @@ def handle_text_message(event):
         elif text == ms.MSG_BN_CREATE_3_5:
             s.set_type(user_id, st.Type.BN_CREATE_TRACK5)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user_id)))
-
     else:
         if ctx == 0:
             line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
-
-    if text == 'debug':
-        app.logger.info(s.get_type(user_id), s.get_context(user_id))
 
 
 # Message-branch dictionary
@@ -191,7 +205,6 @@ def route_next(user_id: str):
     ss_type = s.get_type(user_id)
     if ss_type == st.Type.BN_CREATE:
         s.increment_context(user_id)
-        print(s.get_context(user_id))
         if ctx == 2:
             return ms.MSG_BN_CREATE_2
         elif ctx == 3:
@@ -202,5 +215,4 @@ def route_next(user_id: str):
 
 
 if __name__ == "__main__":
-    # line_bot_api.push_message('U728af6e5de3a116a994649e896faa6d7', ))
     app.run(host="localhost", port=8000)
