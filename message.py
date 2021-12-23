@@ -13,6 +13,10 @@ MSG_CONTACT_DEFAULT = 'お問い合わせありがとうございます。\n' \
                       '運営が対応致しますので、続けてお問い合わせ内容をご入力ください！\n' \
                       '「終了」と入力してお問い合わせが終わります！'
 
+# Self Reflection
+KEY_SELF_REFLECTION = '自己分析'
+MSG_SELF_REFLECTION = '今後対応致します。少々お待ちください！'
+
 # BN Creation
 KEY_BN_CREATE = '記事作成'
 MSG_BN_CREATE = '記事の作成を開始します！\n' \
@@ -56,7 +60,7 @@ MSG_BN_CREATE_T5_2 = '違う考え方・価値観と出会い、考え方に変�
 # Catcher
 KEY_CATCHER = 'ロールモデル'
 MSG_CATCHER = 'ロールモデル マッチングを開始します！\n' \
-              '「中断」と入力してセッション自体を終了します！'
+              '「終了」と入力してセッション自体を終了します！'
 MSG_CATCHER_CONFIRM = TemplateSendMessage(
     template=ConfirmTemplate(
         actions=[
@@ -182,13 +186,14 @@ CATCHER_FORMAT = BubbleContainer(
 
 MSG_DEFAULT = TemplateSendMessage(
     alt_text='Buttons alt text', template=ButtonsTemplate(
-        title="メッセージありがとうございます！", text="以下の3つのボタンからしたいことを選択してください",
+        title="メッセージありがとうございます！", text="以下の4つのボタンからしたいことを選択してください",
         actions=[
-            MessageAction(label='自己分析', text='自己分析'),
+            MessageAction(label='自己分析', text=KEY_SELF_REFLECTION),
             MessageAction(label='記事作成', text=KEY_BN_CREATE),
             MessageAction(label='ロールモデルマッチング', text=KEY_CATCHER),
             MessageAction(label='運営にお問い合わせ', text=KEY_CONTACT),
         ]))
+
 
 
 def main():

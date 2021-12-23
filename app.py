@@ -10,7 +10,7 @@ from linebot.exceptions import (
     InvalidSignatureError, LineBotApiError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage,
+    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, FollowEvent,
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -60,6 +60,17 @@ def callback():
     return 'OK'
 
 
+@handler.add(FollowEvent)
+def handle_follow(event):
+    user_id = event.source.user_id
+    profile = line_bot_api.get_profile(user_id)
+    msg = ms.MSG_DEFAULT
+    msg.template.title = profile.display_name + 'さん、はじめまして！\n' \
+                                                '友達追加ありがとうございます！'
+    line_bot_api.reply_message(event.reply_token, msg)
+    msg.template.title = 'メッセージありがとうございます！'
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
     text = event.message.text
@@ -74,6 +85,8 @@ def handle_text_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         s.reset(user_id)
     # Start
+    elif ctx == 0 and text == ms.KEY_SELF_REFLECTION:
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REFLECTION))
     elif ctx == 0 and text == ms.KEY_BN_CREATE:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_BN_CREATE))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
