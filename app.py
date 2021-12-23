@@ -25,6 +25,7 @@ import session as ss
 import message as ms
 import slack
 import status as st
+import contact
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
@@ -44,6 +45,7 @@ s = ss.Session()
 
 cs = catcher.Catchers()
 
+con = contact.Contact()
 
 @app.route('/callback', methods=['POST'])
 def callback():
@@ -123,15 +125,23 @@ def handle_text_message(event):
                 msg.alt_text = q
                 msg.template.text = q
                 line_bot_api.reply_message(event.reply_token, msg)
+
+    # Slack contact
     elif ctx == 0 and text == ms.KEY_CONTACT:
         profile = line_bot_api.get_profile(user_id)
-        slack.send_msg(profile.display_name + 'さんからお問い合わせがありました！')
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
         s.set_context(user_id, 1)
         s.set_type(user_id, st.Type.CONTACT)
+        res = slack.start_contact(profile.display_name)
+        con.register(user_id, res['message']['ts'])
     elif s.get_type(user_id) == st.Type.CONTACT:
         profile = line_bot_api.get_profile(user_id)
-        slack.send_msg(profile.display_name + 'さんからのお問い合わせ内容；\n' + text)
+        # TODO: Processing at the end of contact
+        if text == ms.KEY_END:
+            print('End of cotact')
+        else:
+            slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
+
     # Next
     elif text == '次':
         msg = route_next(user_id)
