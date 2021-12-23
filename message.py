@@ -6,11 +6,28 @@ from linebot.models import TextSendMessage, QuickReply, QuickReplyButton, Postba
     ButtonsTemplate, TemplateSendMessage, ConfirmTemplate, FlexSendMessage, BubbleContainer, URIAction, ImageComponent, \
     BoxComponent, TextComponent, IconComponent, ButtonComponent, SeparatorComponent
 
+
+KEY_END = '終了'
+MSG_END = 'ありがとうございました！またのご利用をお待ちしております！'
+KEY_SKIP = 'スキップ'
+MSG_SKIP = 'スキップします！'
+KEY_CONTACT = 'お問い合わせ'
+
+MSG_DEFAULT = TemplateSendMessage(
+    alt_text='Buttons alt text', template=ButtonsTemplate(
+        title="メッセージありがとうございます！", text="以下の3つのボタンからしたいことを選択してください",
+        actions=[
+            MessageAction(label='自己分析', text='自己分析'),
+            MessageAction(label='記事作成', text='記事作成'),
+            MessageAction(label='ロールモデル', text='ロールモデル'),
+            MessageAction(label='運営にお問い合わせ', text=KEY_CONTACT),
+        ]))
+
 # BN Creation
 KEY_BN_CREATE = '記事作成'
 MSG_BN_CREATE = '記事の作成を開始します！\n' \
                 '「次」と入力して次の質問に行けます！\n' \
-                '「中断」と入力してセッション自体を終了します！'
+                '「終了」と入力してセッション自体を終了します！'
 MSG_BN_CREATE_1 = '取材の中で印象に残っていることを書き出してみてください！ (5分)\n\n' \
                   '***\n驚いた、共感できた、発見があった、疑問に思ったなどの印象に残っている事を思いつくままに書き出してみましょう\n***\n\n' \
                   '終わり次第「次」と入力して次の質問に行けます！'
@@ -215,3 +232,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+MSG_CONTACT_DEFAULT = 'お問い合わせありがとうございます。\n' \
+                      '運営が対応致しますので、続けてお問い合わせ内容をご入力ください！\n' \
+                      '"終了"と入力してお問い合わせが終わります！'

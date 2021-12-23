@@ -20,8 +20,10 @@ from linebot.models import (
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import catcher
+import config
 import session as ss
 import message as ms
+import slack
 import status as st
 
 app = Flask(__name__)
@@ -29,10 +31,10 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
-channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
-channel_secret = os.getenv('LINE_CHANNEL_SECRET')
+channel_access_token = config.LINE_CHANNEL_ACCESS_TOKEN
+channel_secret = config.LINE_CHANNEL_SECRET
 if channel_secret is None or channel_access_token is None:
-    app.logger.error('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN as environment variables.')
+    app.logger.error('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN in .env file')
     sys.exit(1)
 
 line_bot_api = LineBotApi(channel_access_token)
@@ -121,6 +123,15 @@ def handle_text_message(event):
                 msg.alt_text = q
                 msg.template.text = q
                 line_bot_api.reply_message(event.reply_token, msg)
+    elif ctx == 0 and text == ms.KEY_CONTACT:
+        profile = line_bot_api.get_profile(user_id)
+        slack.send_msg(profile.display_name + 'さんからお問い合わせがありました！')
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
+        s.set_context(user_id, 1)
+        s.set_type(user_id, st.Type.CONTACT)
+    elif s.get_type(user_id) == st.Type.CONTACT:
+        profile = line_bot_api.get_profile(user_id)
+        slack.send_msg(profile.display_name + 'さんからのお問い合わせ内容；\n' + text)
     # Next
     elif text == '次':
         msg = route_next(user_id)
