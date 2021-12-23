@@ -18,6 +18,7 @@ from linebot.models import (
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import config
 import session as ss
 import message as ms
 import slack
@@ -28,10 +29,10 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
-channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
-channel_secret = os.getenv('LINE_CHANNEL_SECRET')
+channel_access_token = config.LINE_CHANNEL_ACCESS_TOKEN
+channel_secret = config.LINE_CHANNEL_SECRET
 if channel_secret is None or channel_access_token is None:
-    app.logger.error('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN as environment variables.')
+    app.logger.error('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN in .env file')
     sys.exit(1)
 
 line_bot_api = LineBotApi(channel_access_token)

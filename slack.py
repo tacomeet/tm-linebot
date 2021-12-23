@@ -1,15 +1,11 @@
-import os
-
 import requests
 
-TOKEN = os.getenv('SLACK_TOKEN')
-if TOKEN is None:
-    print('SLACK_TOKEN is not set')
-    exit(1)
+import config
+
 CHANNEL = 'api-test'
 
 URL = "https://slack.com/api/chat.postMessage"
-HEADERS = {"Authorization": "Bearer " + TOKEN}
+HEADERS = {"Authorization": "Bearer " + config.SLACK_TOKEN}
 
 
 def send_msg(msg):
