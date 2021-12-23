@@ -35,3 +35,4 @@ class Type(Enum):
     BN_CREATE_TRACK5 = auto()
     SELF_REF = auto()
     CATCH_REC = auto()
+    CONTACT = auto()
