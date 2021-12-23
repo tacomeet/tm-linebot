@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import random
 
 from flask import Flask, abort, request
 from linebot import (
@@ -18,6 +19,7 @@ from linebot.models import (
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import catcher
 import config
 import session as ss
 import message as ms
@@ -39,6 +41,8 @@ line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
 s = ss.Session()
+
+cs = catcher.Catchers()
 
 
 @app.route('/callback', methods=['POST'])
@@ -68,17 +72,57 @@ def handle_text_message(event):
 
     s.register(user_id)
     ctx = s.get_context(user_id)
+    ss_type = s.get_type(user_id)
 
     # End
     if ctx != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         s.reset(user_id)
     # Start
-    elif ctx == 0 and ms.KEY_BN_CREATE in text:
+    elif ctx == 0 and text == ms.KEY_BN_CREATE:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_BN_CREATE))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
         s.set_context(user_id, 2)
         s.set_type(user_id, st.Type.BN_CREATE)
+    elif ctx == 0 and text == ms.KEY_CATCHER:
+        cs.register(user_id)
+
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
+        msg = ms.MSG_CATCHER_CONFIRM
+        tag, q = cs.get_question(user_id)
+        msg.alt_text = q
+        msg.template.text = q
+        line_bot_api.push_message(user_id, msg)
+        s.set_type(user_id, st.Type.CATCH_REC)
+    # Yes or No
+    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
+        if text == 'Yes':
+            cs.include_tag(user_id, cs.used_tags[user_id][-1])
+        else:
+            cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
+        if cs.is_determined(user_id):
+            msg = ms.MSG_CATCHER_END
+            rec = cs.cand_by_user[user_id][0]
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
+            line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
+            s.reset(user_id)
+        else:
+            tag, q = cs.get_question(user_id)
+            if not tag:
+                if len(cs.cand_by_user[user_id]) == 0:
+                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
+                else:
+                    rec = random.choice(cs.cand_by_user[user_id])
+                    msg = ms.MSG_CATCHER_END
+                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
+                    line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
+                s.reset(user_id)
+            else:
+                msg = ms.MSG_CATCHER_CONFIRM
+                tag, q = cs.get_question(user_id)
+                msg.alt_text = q
+                msg.template.text = q
+                line_bot_api.reply_message(event.reply_token, msg)
     elif ctx == 0 and text == ms.KEY_CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg(profile.display_name + 'さんからお問い合わせがありました！')
@@ -108,74 +152,13 @@ def handle_text_message(event):
             s.set_type(user_id, st.Type.BN_CREATE_TRACK5)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user_id)))
 
-    # Example
-    elif text == 'confirm':
-        confirm_template = ConfirmTemplate(text='Do it?', actions=[
-            MessageAction(label='Yes', text='Yes!'),
-            MessageAction(label='No', text='No!'),
-        ])
-        template_message = TemplateSendMessage(
-            alt_text='Confirm alt text', template=confirm_template)
-        line_bot_api.reply_message(event.reply_token, template_message)
-    elif text == 'buttons':
-        buttons_template = ButtonsTemplate(
-            title='My buttons sample', text='Hello, my buttons', actions=[
-                URIAction(label='Go to line.me', uri='https://line.me'),
-                PostbackAction(label='ping', data='ping'),
-                PostbackAction(label='ping with text', data='ping', text='ping'),
-                MessageAction(label='Translate Rice', text='米')
-            ])
-        template_message = TemplateSendMessage(
-            alt_text='Buttons alt text', template=buttons_template)
-        line_bot_api.reply_message(event.reply_token, template_message)
-    elif text == 'image_carousel':
-        image_carousel_template = ImageCarouselTemplate(columns=[
-            ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
-                                action=DatetimePickerAction(label='datetime',
-                                                            data='datetime_postback',
-                                                            mode='datetime')),
-            ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
-                                action=DatetimePickerAction(label='date',
-                                                            data='date_postback',
-                                                            mode='date'))
-        ])
-        template_message = TemplateSendMessage(
-            alt_text='ImageCarousel alt text', template=image_carousel_template)
-        line_bot_api.reply_message(event.reply_token, template_message)
-    elif text == 'quick_reply':
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(
-                text='Quick reply',
-                quick_reply=QuickReply(
-                    items=[
-                        QuickReplyButton(
-                            action=PostbackAction(label="label1", data="data1")
-                        ),
-                        QuickReplyButton(
-                            action=MessageAction(label="label2", text="text2")
-                        ),
-                        QuickReplyButton(
-                            action=DatetimePickerAction(label="label3",
-                                                        data="data3",
-                                                        mode="date")
-                        ),
-                        QuickReplyButton(
-                            action=CameraAction(label="label4")
-                        ),
-                        QuickReplyButton(
-                            action=CameraRollAction(label="label5")
-                        ),
-                        QuickReplyButton(
-                            action=LocationAction(label="label6")
-                        ),
-                    ])))
     else:
         if ctx == 0:
             line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
 
     if text == 'debug':
         app.logger.info(s.get_type(user_id), s.get_context(user_id))
+
 
 # Message-branch dictionary
 bn_dict_1 = {1: ms.MSG_BN_CREATE_T1_1, 2: ms.MSG_BN_CREATE_T1_2, 3: ms.MSG_BN_CREATE_T1_3, 4: ms.MSG_END}
@@ -188,6 +171,7 @@ type_dict = {st.Type.BN_CREATE_TRACK1: bn_dict_1,
              st.Type.BN_CREATE_TRACK3: bn_dict_3,
              st.Type.BN_CREATE_TRACK5: bn_dict_4}
 
+
 def route_bn_create(user_id: str):
     ss_type = s.get_type(user_id)
     ctx = s.get_context(user_id)
@@ -195,11 +179,12 @@ def route_bn_create(user_id: str):
 
     if ss_type in type_dict:
         bn_dict = type_dict[ss_type]
-        
+
     if ctx in bn_dict:
         if bn_dict[ctx] == ms.MSG_END:
             s.reset(user_id)
         return bn_dict[ctx]
+
 
 def route_next(user_id: str):
     ctx = s.get_context(user_id)
@@ -217,4 +202,5 @@ def route_next(user_id: str):
 
 
 if __name__ == "__main__":
+    # line_bot_api.push_message('U728af6e5de3a116a994649e896faa6d7', ))
     app.run(host="localhost", port=8000)
