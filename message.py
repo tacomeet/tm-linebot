@@ -1,6 +1,4 @@
 # default commands
-import json
-
 import requests
 from linebot.models import TextSendMessage, QuickReply, QuickReplyButton, PostbackAction, MessageAction, \
     ButtonsTemplate, TemplateSendMessage, ConfirmTemplate, FlexSendMessage, BubbleContainer, URIAction, ImageComponent, \
@@ -77,20 +75,6 @@ MSG_CATCHER_END = 'このかたはどうでしょうか？'
 MSG_CATCHER_SORRY = 'ごめんなさい！マッチする人が現状はいません。\n' \
                     '運営に連絡くだされば、なんとか探します！'
 
-# Default
-KEY_END = '中断'
-MSG_END = 'お疲れさまでした。またのご利用をお待ちしております！'
-KEY_SKIP = 'スキップ'
-MSG_SKIP = 'スキップします！'
-
-MSG_DEFAULT = TemplateSendMessage(
-    alt_text='Buttons alt text', template=ButtonsTemplate(
-        title="メッセージありがとうございます！", text="以下の3つのボタンからしたいことを選択してください",
-        actions=[
-            MessageAction(label='自己分析のセッション', text='自己分析'),
-            MessageAction(label='誰かに話を聞いた後の振り返り', text=KEY_BN_CREATE),
-            MessageAction(label='おすすめのロールモデルを教えます！', text=KEY_CATCHER),
-        ]))
 
 BASE_URL = 'https://teenmakers.jp/wp-json/wp/v2/'
 user_id = 'U728af6e5de3a116a994649e896faa6d7'
@@ -114,7 +98,7 @@ def get_catcher(uid):
     j = res.json()
     img = j['guid']['rendered']
 
-    msg.hero.url = 'https://teenmakers.jp/wp-content/uploads/2021/07/213103469_528802618177054_2190653967977882707_n.jpeg'
+    msg.hero.url = img
     msg.hero.action.uri = url
 
     msg.body.contents[0].text = name + ' さん'
