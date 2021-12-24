@@ -184,25 +184,13 @@ def send_rec(event, user_id, rec):
     line_bot_api.push_message(user_id, msg)
 
 
-# Message-branch dictionary
-bn_dict_1 = {1: ms.MSG_BN_CREATE_T1_1, 2: ms.MSG_BN_CREATE_T1_2, 3: ms.MSG_BN_CREATE_T1_3, 4: ms.MSG_END}
-bn_dict_2 = {1: ms.MSG_BN_CREATE_T2_1, 2: ms.MSG_BN_CREATE_T2_2, 3: ms.MSG_BN_CREATE_T2_3, 4: ms.MSG_END}
-bn_dict_3 = {1: ms.MSG_BN_CREATE_T3_1, 2: ms.MSG_BN_CREATE_T3_2, 3: ms.MSG_END}
-bn_dict_4 = {1: ms.MSG_BN_CREATE_T5_1, 2: ms.MSG_BN_CREATE_T5_2, 3: ms.MSG_END}
-
-type_dict = {st.Type.BN_CREATE_TRACK1: bn_dict_1,
-             st.Type.BN_CREATE_TRACK2: bn_dict_2,
-             st.Type.BN_CREATE_TRACK3: bn_dict_3,
-             st.Type.BN_CREATE_TRACK5: bn_dict_4}
-
-
 def route_bn_create(user_id: str):
     ss_type = s.get_type(user_id)
     ctx = s.get_context(user_id)
     s.increment_context(user_id)
 
-    if ss_type in type_dict:
-        bn_dict = type_dict[ss_type]
+    if ss_type in ms.type_dict:
+        bn_dict = ms.type_dict[ss_type]
 
     if ctx in bn_dict:
         if bn_dict[ctx] == ms.MSG_END:

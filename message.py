@@ -2,6 +2,8 @@ import requests
 from linebot.models import MessageAction, ButtonsTemplate, TemplateSendMessage, ConfirmTemplate, BubbleContainer, \
     URIAction, ImageComponent, BoxComponent, TextComponent, ButtonComponent, SeparatorComponent
 
+import status as st
+
 # default commands
 KEY_END = '終了'
 MSG_END = 'ありがとうございました！またのご利用をお待ちしております！'
@@ -56,6 +58,17 @@ MSG_BN_CREATE_T3_2 = 'そんな気づきや学びを踏まえて、どのよう�
 
 MSG_BN_CREATE_T5_1 = '自分の考え方とどのように違いましたか？'
 MSG_BN_CREATE_T5_2 = '違う考え方・価値観と出会い、考え方に変化はありましたか？'
+
+# Message-branch dictionary
+bn_dict_1 = {1: MSG_BN_CREATE_T1_1, 2: MSG_BN_CREATE_T1_2, 3: MSG_BN_CREATE_T1_3, 4: MSG_END}
+bn_dict_2 = {1: MSG_BN_CREATE_T2_1, 2: MSG_BN_CREATE_T2_2, 3: MSG_BN_CREATE_T2_3, 4: MSG_END}
+bn_dict_3 = {1: MSG_BN_CREATE_T3_1, 2: MSG_BN_CREATE_T3_2, 3: MSG_END}
+bn_dict_4 = {1: MSG_BN_CREATE_T5_1, 2: MSG_BN_CREATE_T5_2, 3: MSG_END}
+
+type_dict = {st.Type.BN_CREATE_TRACK1: bn_dict_1,
+             st.Type.BN_CREATE_TRACK2: bn_dict_2,
+             st.Type.BN_CREATE_TRACK3: bn_dict_3,
+             st.Type.BN_CREATE_TRACK5: bn_dict_4}
 
 # Catcher
 KEY_CATCHER = 'ロールモデル'
