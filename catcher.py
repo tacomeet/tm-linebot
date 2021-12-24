@@ -25,6 +25,7 @@ class Catchers:
         self.candidates = []
         self.cand_by_user = {}
         self.used_tags = {}
+        self.catcher_question = {}
         res_num = DEFAULT_PER_PAGE
         offset = 0
         while res_num == DEFAULT_PER_PAGE:
@@ -46,40 +47,49 @@ class Catchers:
     def register(self, user_id):
         self.cand_by_user[user_id] = self.candidates.copy()
         self.used_tags[user_id] = []
+        self.catcher_question[user_id] = None
 
-    def get_question(self, used_id) -> (int, str):
-        cand = self.cand_by_user[used_id]
+    def get_question(self, user_id) -> (int, str):
+        cand = self.cand_by_user[user_id]
         cand_tag = set()
         for c in cand:
             cand_tag.update(self.catchers[c].tags)
-        for t in self.used_tags[used_id]:
+        for t in self.used_tags[user_id]:
             if t in cand_tag:
                 cand_tag.remove(t)
         if len(cand_tag) == 0:
             return None, None
         t = random.choice(list(cand_tag))
         q = question.questions[t]
-        self.used_tags[used_id].append(t)
-        return t, random.choice(q)
+        self.used_tags[user_id].append(t)
+        return t, q
 
-    def exclude_tag(self, used_id, tag):
-        cand = self.cand_by_user[used_id]
+    def exclude_tag(self, user_id, tag):
+        cand = self.cand_by_user[user_id]
         new = []
         for c in cand:
             if tag not in self.catchers[c].tags:
                 new.append(c)
-        self.cand_by_user[used_id] = new
+        self.cand_by_user[user_id] = new
 
-    def include_tag(self, used_id, tag):
-        cand = self.cand_by_user[used_id]
+    def include_tag(self, user_id, tag):
+        cand = self.cand_by_user[user_id]
         new = []
         for c in cand:
             if tag in self.catchers[c].tags:
                 new.append(c)
-        self.cand_by_user[used_id] = new
+        self.cand_by_user[user_id] = new
 
-    def is_determined(self, used_id):
-        return len(self.cand_by_user[used_id]) == 1
+    def get_rec(self, user_id):
+        cand = self.cand_by_user[user_id]
+        for c in cand:
+            satis = True
+            for t in self.catchers[c].tags:
+                if t not in self.used_tags[user_id]:
+                    satis = False
+                    break
+            if satis:
+                return c
 
 
 
