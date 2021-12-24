@@ -3,6 +3,7 @@ import sys
 import random
 import json
 
+import schedule as schedule
 from flask import Flask, abort, request, Response
 from linebot import (
     LineBotApi, WebhookHandler
@@ -11,7 +12,7 @@ from linebot.exceptions import (
     InvalidSignatureError, LineBotApiError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, FollowEvent,
+    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, FollowEvent, UnfollowEvent,
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -38,10 +39,11 @@ line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
 s = ss.Session()
-
 cs = catcher.Catchers()
-
 con = contact.Contact()
+display_name = {}
+
+schedule.every(1).week.do(cs.refresh)
 
 
 @app.route('/', methods=["POST"])
@@ -89,6 +91,14 @@ def handle_follow(event):
                                                 '友達追加ありがとうございます！'
     line_bot_api.reply_message(event.reply_token, msg)
     msg.template.title = 'メッセージありがとうございます！'
+    display_name[user_id] = profile.display_name
+    slack.send_message(f'{profile.display_name}さんが追加しました！')
+
+
+@handler.add(UnfollowEvent)
+def handle_unfollow(event):
+    user_id = event.source.user_id
+    slack.send_message(f'{display_name.get(user_id)}さんがブロックしました...')
 
 
 @handler.add(MessageEvent, message=TextMessage)
@@ -137,6 +147,7 @@ def handle_ctx0(event):
         s.set_type(user_id, st.Type.BN_CREATE)
     elif text == ms.KEY_CATCHER:
         cs.register(user_id)
+        schedule.run_pending()
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
         msg = ms.MSG_CATCHER_CONFIRM
         tag, q = cs.get_question(user_id)

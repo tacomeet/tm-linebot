@@ -1,3 +1,4 @@
+import logging
 import random
 import sys
 
@@ -7,6 +8,8 @@ import question
 
 BASE_URL = 'https://teenmakers.jp/wp-json/wp/v2/'
 DEFAULT_PER_PAGE = 10
+
+logger = logging.getLogger('app.flask')
 
 
 class Catcher:
@@ -26,23 +29,7 @@ class Catchers:
         self.cand_by_user = {}
         self.used_tags = {}
         self.catcher_question = {}
-        res_num = DEFAULT_PER_PAGE
-        offset = 0
-        while res_num == DEFAULT_PER_PAGE:
-            res = requests.get(BASE_URL + 'posts?offset=' + str(offset), timeout=5)
-            if res.status_code != requests.codes.ok:
-                print('Error: ' + str(res.status_code))
-                break
-            js = res.json()
-            res_num = len(js)
-            offset += DEFAULT_PER_PAGE
-            for j in js:
-                uid = j['id']
-                age = j['acf']['age']
-                tags = j['tags']
-                c = Catcher(uid, tags, age)
-                self.catchers[uid] = c
-                self.candidates.append(uid)
+        self.refresh()
 
     def register(self, user_id):
         self.cand_by_user[user_id] = self.candidates.copy()
@@ -91,7 +78,24 @@ class Catchers:
             if satis:
                 return c
 
-
+    def refresh(self):
+        res_num = DEFAULT_PER_PAGE
+        offset = 0
+        while res_num == DEFAULT_PER_PAGE:
+            res = requests.get(BASE_URL + 'posts?offset=' + str(offset), timeout=5)
+            if res.status_code != requests.codes.ok:
+                logger.error('Error: ' + str(res.status_code))
+                break
+            js = res.json()
+            res_num = len(js)
+            offset += DEFAULT_PER_PAGE
+            for j in js:
+                uid = j['id']
+                age = j['acf']['age']
+                tags = j['tags']
+                c = Catcher(uid, tags, age)
+                self.catchers[uid] = c
+                self.candidates.append(uid)
 
 
 def yes_no():
