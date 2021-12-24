@@ -3,6 +3,7 @@ import sys
 import random
 import json
 
+import schedule as schedule
 from flask import Flask, abort, request, Response
 from linebot import (
     LineBotApi, WebhookHandler
@@ -42,6 +43,8 @@ s = ss.Session()
 cs = catcher.Catchers()
 
 con = contact.Contact()
+
+schedule.every(1).week.do(cs.refresh())
 
 
 @app.route('/', methods=["POST"])
@@ -137,6 +140,7 @@ def handle_ctx0(event):
         s.set_type(user_id, st.Type.BN_CREATE)
     elif text == ms.KEY_CATCHER:
         cs.register(user_id)
+        schedule.run_pending()
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
         msg = ms.MSG_CATCHER_CONFIRM
         tag, q = cs.get_question(user_id)
