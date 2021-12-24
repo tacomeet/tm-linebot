@@ -7,11 +7,10 @@ class Contact:
 	Attributes:
 		_thread_map (dict): map of user ID to slack contact thread
 	"""
-	_thread_map = dict()
-	_user_id_map = dict()
 
 	def __init__(self) -> None:
-		pass
+		self._thread_map = dict()
+		self._user_id_map = dict()
 
 	def register(self, user_id, thread_ts):
 		self._set_thread(user_id, thread_ts)
