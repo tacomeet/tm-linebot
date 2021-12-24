@@ -12,7 +12,7 @@ from linebot.exceptions import (
     InvalidSignatureError, LineBotApiError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, FollowEvent,
+    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, FollowEvent, UnfollowEvent,
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -92,6 +92,13 @@ def handle_follow(event):
                                                 '友達追加ありがとうございます！'
     line_bot_api.reply_message(event.reply_token, msg)
     msg.template.title = 'メッセージありがとうございます！'
+
+
+@handler.add(UnfollowEvent)
+def handle_unfollow(event):
+    user_id = event.source.user_id
+    profile = line_bot_api.get_profile(user_id)
+    slack.send_message(f'{profile.display_name}さんがブロックしました...')
 
 
 @handler.add(MessageEvent, message=TextMessage)
