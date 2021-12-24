@@ -2,8 +2,9 @@ import logging
 import os
 import sys
 import random
+import json
 
-from flask import Flask, abort, request
+from flask import Flask, abort, request, Response
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -46,6 +47,23 @@ s = ss.Session()
 cs = catcher.Catchers()
 
 con = contact.Contact()
+
+
+@app.route('/', methods=["POST"])
+def index():
+    data = request.data.decode('utf-8')
+    data = json.loads(data)
+    # for challenge of slack api
+    if 'challenge' in data:
+        token = str(data['challenge'])
+        return Response(token, mimetype='text/plane')
+    # for events which you added
+    if 'event' in data:
+        event = data['event']
+        app.logger.info(event)
+        reply_contact(event)
+    return 'OK'
+
 
 @app.route('/callback', methods=['POST'])
 def callback():
@@ -209,6 +227,13 @@ def route_next(user_id: str):
     elif ss_type in (
             st.Type.BN_CREATE_TRACK1, st.Type.BN_CREATE_TRACK2, st.Type.BN_CREATE_TRACK3, st.Type.BN_CREATE_TRACK5):
         return route_bn_create(user_id)
+
+def reply_contact(event):
+    if 'bot_id' not in event:
+        thread_ts = event['thread_ts']
+        user_id = con.get_user(thread_ts)
+        msg = event['text']
+        line_bot_api.push_message(user_id, TextSendMessage(text=msg))
 
 
 if __name__ == "__main__":
