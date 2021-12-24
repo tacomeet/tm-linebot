@@ -103,7 +103,7 @@ def handle_text_message(event):
     if ctx != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         s.reset(user_id)
-    if ctx == 0:
+    elif ctx == 0:
         handle_ctx0(event)
     elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
         handle_catcher_rec(event)
@@ -112,7 +112,6 @@ def handle_text_message(event):
         slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
     elif text == '次':
         handle_next(event)
-    # Route in BN Create
     elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
         handle_route_bn_create(event)
 
