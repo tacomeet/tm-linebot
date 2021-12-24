@@ -80,7 +80,7 @@ class Catchers:
                 new.append(c)
         self.cand_by_user[user_id] = new
 
-    def is_determined(self, user_id):
+    def get_rec(self, user_id):
         cand = self.cand_by_user[user_id]
         for c in cand:
             satis = True

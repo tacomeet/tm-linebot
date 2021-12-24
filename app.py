@@ -115,15 +115,9 @@ def handle_text_message(event):
             if text == 'No':
                 cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
             else:
-                rec = cs.is_determined(user_id)
+                rec = cs.get_rec(user_id)
                 if rec is not None:
-                    cs.catcher_question[user_id] = rec
-                    msg = ms.MSG_CATCHER_CONFIRM
-                    msg.alt_text = ms.MSG_CATCHER_CONFIRM_TEXT
-                    msg.template.text = ms.MSG_CATCHER_CONFIRM_TEXT
-                    line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text="catcher profile",
-                                                                                  contents=ms.get_catcher(rec)))
-                    line_bot_api.push_message(user_id, msg)
+                    send_rec(event, user_id, rec)
                     return
         else:
             if text == 'Yes':
@@ -132,16 +126,9 @@ def handle_text_message(event):
                 return
             elif text == 'No':
                 cs.cand_by_user[user_id].remove(cs.catcher_question[user_id])
-
-            rec = cs.is_determined(user_id)
+            rec = cs.get_rec(user_id)
             if rec is not None:
-                cs.catcher_question[user_id] = rec
-                msg = ms.MSG_CATCHER_CONFIRM
-                msg.alt_text = ms.MSG_CATCHER_CONFIRM_TEXT
-                msg.template.text = ms.MSG_CATCHER_CONFIRM_TEXT
-                line_bot_api.reply_message(event.reply_token,
-                                           FlexSendMessage(alt_text="catcher profile", contents=ms.get_catcher(rec)))
-                line_bot_api.push_message(user_id, msg)
+                send_rec(event, user_id, rec)
                 return
         tag, q = cs.get_question(user_id)
         if not tag:
@@ -185,6 +172,16 @@ def handle_text_message(event):
     else:
         if ctx == 0:
             line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
+
+
+def send_rec(event, user_id, rec):
+    cs.catcher_question[user_id] = rec
+    msg = ms.MSG_CATCHER_CONFIRM
+    msg.alt_text = ms.MSG_CATCHER_CONFIRM_TEXT
+    msg.template.text = ms.MSG_CATCHER_CONFIRM_TEXT
+    line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text="catcher profile",
+                                                                  contents=ms.get_catcher(rec)))
+    line_bot_api.push_message(user_id, msg)
 
 
 # Message-branch dictionary
