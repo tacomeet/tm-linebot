@@ -100,21 +100,44 @@ def handle_text_message(event):
     ctx = s.get_context(user_id)
     ss_type = s.get_type(user_id)
 
-    # End
     if ctx != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         s.reset(user_id)
-    # Start
-    elif ctx == 0 and text == ms.KEY_SELF_REFLECTION:
+    if ctx == 0:
+        handle_ctx0(event)
+    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
+        handle_catcher_rec(event)
+    elif ss_type == st.Type.CONTACT:
+        profile = line_bot_api.get_profile(user_id)
+        slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
+    elif text == '次':
+        handle_next(event)
+    # Route in BN Create
+    elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
+        handle_route_bn_create(event)
+
+
+def handle_next(event):
+    user_id = event.source.user_id
+    msg = route_next(user_id)
+    if isinstance(msg, str):
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
+    else:
+        line_bot_api.reply_message(event.reply_token, msg)
+
+
+def handle_ctx0(event):
+    text = event.message.text
+    user_id = event.source.user_id
+    if text == ms.KEY_SELF_REFLECTION:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REFLECTION))
-    elif ctx == 0 and text == ms.KEY_BN_CREATE:
+    elif text == ms.KEY_BN_CREATE:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_BN_CREATE))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
         s.set_context(user_id, 2)
         s.set_type(user_id, st.Type.BN_CREATE)
-    elif ctx == 0 and text == ms.KEY_CATCHER:
+    elif text == ms.KEY_CATCHER:
         cs.register(user_id)
-
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
         msg = ms.MSG_CATCHER_CONFIRM
         tag, q = cs.get_question(user_id)
@@ -123,81 +146,70 @@ def handle_text_message(event):
         line_bot_api.push_message(user_id, msg)
         s.set_type(user_id, st.Type.CATCH_REC)
         s.set_context(user_id, 1)
-    elif ctx == 0 and text == ms.KEY_CONTACT:
+    elif text == ms.KEY_CONTACT:
         profile = line_bot_api.get_profile(user_id)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
         s.set_context(user_id, 1)
         s.set_type(user_id, st.Type.CONTACT)
         res = slack.start_contact(profile.display_name)
         con.register(user_id, res['message']['ts'])
-    # RoleModel Matching
-    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
-        if cs.catcher_question[user_id] is None:
-            if text == 'No':
-                cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
-            else:
-                rec = cs.get_rec(user_id)
-                if rec is not None:
-                    send_rec(event, user_id, rec)
-                    return
+    else:
+        line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
+
+
+def handle_catcher_rec(event):
+    user_id = event.source.user_id
+    text = event.message.text
+    if cs.catcher_question[user_id] is None:
+        if text == 'No':
+            cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
         else:
-            if text == 'Yes':
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
-                s.reset(user_id)
-                return
-            elif text == 'No':
-                cs.cand_by_user[user_id].remove(cs.catcher_question[user_id])
             rec = cs.get_rec(user_id)
             if rec is not None:
                 send_rec(event, user_id, rec)
                 return
-        tag, q = cs.get_question(user_id)
-        if not tag:
-            if len(cs.cand_by_user[user_id]) == 0:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
-            else:
-                rec = random.choice(cs.cand_by_user[user_id])
-                msg = ms.MSG_CATCHER_END
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-                line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
-            s.reset(user_id)
-        else:
-            cs.catcher_question[user_id] = None
-            msg = ms.MSG_CATCHER_CONFIRM
-            msg.alt_text = q
-            msg.template.text = q
-            line_bot_api.reply_message(event.reply_token, msg)
-    # Contact
-    elif ss_type == st.Type.CONTACT:
-        profile = line_bot_api.get_profile(user_id)
-        # TODO: Processing at the end of contact
-        if text == ms.KEY_END:
-            print('End of cotact')
-        else:
-            slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
-
-    # Next
-    elif text == '次':
-        msg = route_next(user_id)
-        if isinstance(msg, str):
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-        else:
-            line_bot_api.reply_message(event.reply_token, msg)
-    # Route in BN Create
-    elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
-        s.set_context(user_id, 1)
-        if text == ms.MSG_BN_CREATE_3_1:
-            s.set_type(user_id, st.Type.BN_CREATE_TRACK1)
-        elif text == ms.MSG_BN_CREATE_3_2:
-            s.set_type(user_id, st.Type.BN_CREATE_TRACK2)
-        elif text == ms.MSG_BN_CREATE_3_3:
-            s.set_type(user_id, st.Type.BN_CREATE_TRACK3)
-        elif text == ms.MSG_BN_CREATE_3_5:
-            s.set_type(user_id, st.Type.BN_CREATE_TRACK5)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user_id)))
     else:
-        if ctx == 0:
-            line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
+        if text == 'Yes':
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
+            s.reset(user_id)
+            return
+        elif text == 'No':
+            cs.cand_by_user[user_id].remove(cs.catcher_question[user_id])
+        rec = cs.get_rec(user_id)
+        if rec is not None:
+            send_rec(event, user_id, rec)
+            return
+    tag, q = cs.get_question(user_id)
+    if not tag:
+        if len(cs.cand_by_user[user_id]) == 0:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
+        else:
+            rec = random.choice(cs.cand_by_user[user_id])
+            msg = ms.MSG_CATCHER_END
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
+            line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
+        s.reset(user_id)
+    else:
+        cs.catcher_question[user_id] = None
+        msg = ms.MSG_CATCHER_CONFIRM
+        msg.alt_text = q
+        msg.template.text = q
+        line_bot_api.reply_message(event.reply_token, msg)
+
+
+def handle_route_bn_create(event):
+    user_id = event.source.user_id
+    text = event.message.text
+    s.set_context(user_id, 1)
+    if text == ms.MSG_BN_CREATE_3_1:
+        s.set_type(user_id, st.Type.BN_CREATE_TRACK1)
+    elif text == ms.MSG_BN_CREATE_3_2:
+        s.set_type(user_id, st.Type.BN_CREATE_TRACK2)
+    elif text == ms.MSG_BN_CREATE_3_3:
+        s.set_type(user_id, st.Type.BN_CREATE_TRACK3)
+    elif text == ms.MSG_BN_CREATE_3_5:
+        s.set_type(user_id, st.Type.BN_CREATE_TRACK5)
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user_id)))
 
 
 def send_rec(event, user_id, rec):
@@ -236,6 +248,7 @@ def route_next(user_id: str):
     elif ss_type in (
             st.Type.BN_CREATE_TRACK1, st.Type.BN_CREATE_TRACK2, st.Type.BN_CREATE_TRACK3, st.Type.BN_CREATE_TRACK5):
         return route_bn_create(user_id)
+
 
 def reply_contact(event):
     if 'bot_id' not in event:
