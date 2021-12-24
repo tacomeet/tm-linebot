@@ -1,8 +1,9 @@
 import logging
 import sys
 import random
+import json
 
-from flask import Flask, abort, request
+from flask import Flask, abort, request, Response
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -20,6 +21,7 @@ import session as ss
 import message as ms
 import slack
 import status as st
+import contact
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
@@ -38,6 +40,24 @@ handler = WebhookHandler(channel_secret)
 s = ss.Session()
 
 cs = catcher.Catchers()
+
+con = contact.Contact()
+
+
+@app.route('/', methods=["POST"])
+def index():
+    data = request.data.decode('utf-8')
+    data = json.loads(data)
+    # for challenge of slack api
+    if 'challenge' in data:
+        token = str(data['challenge'])
+        return Response(token, mimetype='text/plane')
+    # for events which you added
+    if 'event' in data:
+        event = data['event']
+        app.logger.info(event)
+        reply_contact(event)
+    return 'OK'
 
 
 @app.route('/callback', methods=['POST'])
@@ -105,10 +125,11 @@ def handle_text_message(event):
         s.set_context(user_id, 1)
     elif ctx == 0 and text == ms.KEY_CONTACT:
         profile = line_bot_api.get_profile(user_id)
-        slack.send_msg(profile.display_name + 'さんからお問い合わせがありました！')
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
         s.set_context(user_id, 1)
         s.set_type(user_id, st.Type.CONTACT)
+        res = slack.start_contact(profile.display_name)
+        con.register(user_id, res['message']['ts'])
     # RoleModel Matching
     elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
         if cs.catcher_question[user_id] is None:
@@ -149,7 +170,12 @@ def handle_text_message(event):
     # Contact
     elif ss_type == st.Type.CONTACT:
         profile = line_bot_api.get_profile(user_id)
-        slack.send_msg(profile.display_name + 'さんからのお問い合わせ内容；\n' + text)
+        # TODO: Processing at the end of contact
+        if text == ms.KEY_END:
+            print('End of cotact')
+        else:
+            slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
+
     # Next
     elif text == '次':
         msg = route_next(user_id)
@@ -210,6 +236,13 @@ def route_next(user_id: str):
     elif ss_type in (
             st.Type.BN_CREATE_TRACK1, st.Type.BN_CREATE_TRACK2, st.Type.BN_CREATE_TRACK3, st.Type.BN_CREATE_TRACK5):
         return route_bn_create(user_id)
+
+def reply_contact(event):
+    if 'bot_id' not in event:
+        thread_ts = event['thread_ts']
+        user_id = con.get_user(thread_ts)
+        msg = event['text']
+        line_bot_api.push_message(user_id, TextSendMessage(text=msg))
 
 
 if __name__ == "__main__":
