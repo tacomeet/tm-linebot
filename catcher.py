@@ -9,7 +9,7 @@ import question
 BASE_URL = 'https://teenmakers.jp/wp-json/wp/v2/'
 DEFAULT_PER_PAGE = 10
 
-logger = logging.getlogger('app.flask')
+logger = logging.getLogger('app.flask')
 
 
 class Catcher:

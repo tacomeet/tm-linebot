@@ -39,12 +39,11 @@ line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
 s = ss.Session()
-
 cs = catcher.Catchers()
-
 con = contact.Contact()
+display_name = {}
 
-schedule.every(1).week.do(cs.refresh())
+schedule.every(1).week.do(cs.refresh)
 
 
 @app.route('/', methods=["POST"])
@@ -92,13 +91,14 @@ def handle_follow(event):
                                                 '友達追加ありがとうございます！'
     line_bot_api.reply_message(event.reply_token, msg)
     msg.template.title = 'メッセージありがとうございます！'
+    display_name[user_id] = profile.display_name
+    slack.send_message(f'{profile.display_name}さんが追加しました！')
 
 
 @handler.add(UnfollowEvent)
 def handle_unfollow(event):
     user_id = event.source.user_id
-    profile = line_bot_api.get_profile(user_id)
-    slack.send_message(f'{profile.display_name}さんがブロックしました...')
+    slack.send_message(f'{display_name.get(user_id)}さんがブロックしました...')
 
 
 @handler.add(MessageEvent, message=TextMessage)
