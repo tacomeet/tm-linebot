@@ -46,6 +46,11 @@ display_name = {}
 schedule.every(1).week.do(cs.refresh)
 
 
+@app.route('/test', methods=["GET"])
+def test():
+    return Response(json.dumps({"status": "OK"}), mimetype='application/json')
+
+
 @app.route('/', methods=["POST"])
 def index():
     data = request.data.decode('utf-8')
@@ -269,4 +274,5 @@ def reply_contact(event):
 
 
 if __name__ == "__main__":
-    app.run()
+    # app.run()
+    app.run(host='0.0.0.0')

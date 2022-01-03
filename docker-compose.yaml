@@ -1,0 +1,48 @@
+version: "3.5"
+services:
+  server:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile-python
+    ports:
+      - 5000:5000
+    environment:
+       POSTGRES_USER: root
+       POSTGRES_PASSWORD: password
+       POSTGRES_DB: linebot-tm
+    volumes:
+      - .:/app
+    command: >
+      sh -c "python app.py"
+#      sh -c "jurigged app.py"
+    depends_on:
+      - postgresql
+
+  postgresql:
+    build: 
+      context: .
+      dockerfile: ./docker/Dockerfile-postgres
+    container_name: postgresql
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+      POSTGRES_DB: linebot-tm
+#    hostname: postgres
+#    restart: always
+#    user: root
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    ports:
+      - 80:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.com
+      PGADMIN_DEFAULT_PASSWORD: password
+#    hostname: pgadmin4
+    restart: always
+    depends_on:
+      - postgresql
