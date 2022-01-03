@@ -5,6 +5,7 @@ import json
 
 import schedule as schedule
 from flask import Flask, abort, request, Response
+from flask_sqlalchemy import SQLAlchemy
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -18,6 +19,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 import catcher
 import config
+from db import db
 import session as ss
 import message as ms
 import slack
@@ -28,6 +30,9 @@ app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db.get_db_uri()
+app_db = SQLAlchemy(app)
 
 channel_access_token = config.LINE_CHANNEL_ACCESS_TOKEN
 channel_secret = config.LINE_CHANNEL_SECRET
@@ -275,4 +280,5 @@ def reply_contact(event):
 
 if __name__ == "__main__":
     # app.run()
+    # app_db.create_all()
     app.run(host='0.0.0.0')
