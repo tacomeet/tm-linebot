@@ -6,10 +6,10 @@ services:
       dockerfile: ./docker/Dockerfile-python
     ports:
       - 5000:5000
-    # environment:
-    #   POSTGRES_USER: root
-    #   POSTGRES_PASSWORD: password
-    #   POSTGRES_DB: linebot-tm
+     environment:
+       POSTGRES_USER: root
+       POSTGRES_PASSWORD: password
+       POSTGRES_DB: linebot-tm
     volumes:
       - .:/app
     command: >
@@ -29,7 +29,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: password
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
-      POSTGRES_DB: world-letter
+      POSTGRES_DB: linebot-tm
 #    hostname: postgres
 #    restart: always
 #    user: root
