@@ -280,5 +280,5 @@ def reply_contact(event):
 
 if __name__ == "__main__":
     # app.run()
-    # app_db.create_all()
+    app_db.create_all()
     app.run(host='0.0.0.0')
