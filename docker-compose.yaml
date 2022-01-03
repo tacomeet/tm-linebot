@@ -1,7 +1,9 @@
 version: "3.5"
 services:
   server:
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile-python
     ports:
       - 5000:5000
     # environment:
@@ -17,7 +19,9 @@ services:
       - postgresql
 
   postgresql:
-    image: postgres:latest
+    build: 
+      context: .
+      dockerfile: ./docker/Dockerfile-postgres
     container_name: postgresql
     ports:
       - 5432:5432
