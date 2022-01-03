@@ -45,4 +45,4 @@ services:
 #    hostname: pgadmin4
     restart: always
     depends_on:
-      - postgres
+      - postgresql
