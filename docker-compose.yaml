@@ -4,10 +4,10 @@ services:
     build: .
     ports:
       - 5000:5000
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: linebot-tm
+    # environment:
+    #   POSTGRES_USER: root
+    #   POSTGRES_PASSWORD: password
+    #   POSTGRES_DB: linebot-tm
     volumes:
       - .:/app
     command: >
