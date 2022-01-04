@@ -2,6 +2,7 @@ import logging
 import sys
 import random
 import json
+from datetime import datetime
 
 import schedule as schedule
 from flask import Flask, abort, request, Response
@@ -19,7 +20,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 import catcher
 import config
-from db import db
+from database import database
 import session as ss
 import message as ms
 import slack
@@ -31,8 +32,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db.get_db_uri()
-app_db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = database.get_db_uri()
+db = SQLAlchemy(app)
 
 channel_access_token = config.LINE_CHANNEL_ACCESS_TOKEN
 channel_secret = config.LINE_CHANNEL_SECRET
@@ -51,8 +52,20 @@ display_name = {}
 schedule.every(1).week.do(cs.refresh)
 
 
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.String(), primary_key=True)
+    name = db.Column(db.String())
+    status = db.Column(db.Integer())
+    thread_ts = db.Column(db.String())
+    follow = db.Column(db.Boolean())
+    created_at = db.Column(db.DateTime(), default=datetime.now)
+
+
 @app.route('/test', methods=["GET"])
 def test():
+    users = User.query.all()
+    print(users)
     return Response(json.dumps({"status": "OK"}), mimetype='application/json')
 
 
@@ -280,5 +293,5 @@ def reply_contact(event):
 
 if __name__ == "__main__":
     # app.run()
-    app_db.create_all()
+    db.create_all()
     app.run(host='0.0.0.0')
