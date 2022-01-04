@@ -1,4 +1,4 @@
-import status
+import models.status as status
 
 
 class Session:

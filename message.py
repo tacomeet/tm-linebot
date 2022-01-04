@@ -2,7 +2,7 @@ import requests
 from linebot.models import MessageAction, ButtonsTemplate, TemplateSendMessage, ConfirmTemplate, BubbleContainer, \
     URIAction, ImageComponent, BoxComponent, TextComponent, ButtonComponent, SeparatorComponent
 
-import status as st
+import models.status as st
 
 # default commands
 KEY_END = '終了'

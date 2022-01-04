@@ -18,14 +18,14 @@ from linebot.models import (
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-import catcher
+import models.catcher as catcher
+import models.contact as contact
+import models.status as st
+import models.session as ss
 import config
 from database.database import init_db, db, get_db_uri
-import session as ss
 import message as ms
 import slack
-import status as st
-import contact
 import models
 
 def create_app():
