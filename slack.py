@@ -1,5 +1,4 @@
 from slack_sdk import WebClient
-import requests
 
 import config
 

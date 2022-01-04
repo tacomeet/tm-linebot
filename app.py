@@ -24,7 +24,7 @@ import models.status as st
 import models.session as ss
 import config
 from database.database import init_db, db, get_db_uri
-import message as ms
+import models.message as ms
 import slack
 import models
 
