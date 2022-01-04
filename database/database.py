@@ -1,5 +1,6 @@
 import os
 
+from flask_sqlalchemy import SQLAlchemy
 
 def get_db_uri():
     uri = os.environ.get('DATABASE_URL')
@@ -11,3 +12,8 @@ def get_db_uri():
         db_name = os.environ['DB_NAME']
         uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=disable'
     return uri
+
+db = SQLAlchemy()
+
+def init_db(app):
+    db.init_app(app)
