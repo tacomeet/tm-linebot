@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import IntEnum, auto
 
 
 class Status:
@@ -27,7 +27,7 @@ class Status:
         self.type = status_type
 
 
-class Type(Enum):
+class Type(IntEnum):
     BN_CREATE = auto()
     BN_CREATE_TRACK1 = auto()
     BN_CREATE_TRACK2 = auto()

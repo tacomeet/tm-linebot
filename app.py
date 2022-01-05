@@ -54,7 +54,7 @@ if channel_secret is None or channel_access_token is None:
 line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
-s = ss.Session()
+# s = ss.Session()
 cs = catcher.Catchers()
 con = contact.Contact()
 
@@ -90,7 +90,6 @@ def callback():
     signature = request.headers['X-Line-Signature']
 
     body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
 
     try:
         handler.handle(body, signature)
@@ -120,7 +119,12 @@ def handle_follow(event):
     # add user to db
     user = User(id=user_id, name=profile.display_name)
     db.session.add(user)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        slack.send_message(f'{profile.display_name}さんが再追加しました！')
+        return
 
     # send message to slack
     slack.send_message(f'{profile.display_name}さんが追加しました！')
@@ -138,36 +142,45 @@ def handle_text_message(event):
     text = event.message.text
     user_id = event.source.user_id
 
-    s.register(user_id)
-    ctx = s.get_context(user_id)
-    ss_type = s.get_type(user_id)
+    # get user from db
+    user = User.query.get(user_id)
+    if user is None:
+        profile = line_bot_api.get_profile(user_id)
+        user = User(id=user_id, name=profile.display_name)
+        db.session.add(user)
+        db.session.commit()
+        user = User.query.get(user_id)
+    ss_stage = user.session_stage
+    ss_type = user.session_type
 
-    if ctx != 0 and text == ms.KEY_END:
+    if ss_stage != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
-        s.reset(user_id)
-    elif ctx == 0:
-        handle_ctx0(event)
-    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
-        handle_catcher_rec(event)
+        user.reset()
+    elif ss_stage == 0:
+        handle_stage0(user, event)
+    # elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
+    #     # TODO
+    #     handle_catcher_rec(event)
     elif ss_type == st.Type.CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
     elif text == '次':
-        handle_next(event)
+        handle_next(user, event)
     elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
-        handle_route_bn_create(event)
+        handle_route_bn_create(user, event)
+    print(user)
+    db.session.commit()
 
 
-def handle_next(event):
-    user_id = event.source.user_id
-    msg = route_next(user_id)
+def handle_next(user, event):
+    msg = route_next(user)
     if isinstance(msg, str):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
     else:
         line_bot_api.reply_message(event.reply_token, msg)
 
 
-def handle_ctx0(event):
+def handle_stage0(user, event):
     text = event.message.text
     user_id = event.source.user_id
     if text == ms.KEY_SELF_REFLECTION:
@@ -175,83 +188,83 @@ def handle_ctx0(event):
     elif text == ms.KEY_BN_CREATE:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_BN_CREATE))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
-        s.set_context(user_id, 2)
-        s.set_type(user_id, st.Type.BN_CREATE)
-    elif text == ms.KEY_CATCHER:
-        cs.register(user_id)
-        schedule.run_pending()
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
-        msg = ms.MSG_CATCHER_CONFIRM
-        tag, q = cs.get_question(user_id)
-        msg.alt_text = q
-        msg.template.text = q
-        line_bot_api.push_message(user_id, msg)
-        s.set_type(user_id, st.Type.CATCH_REC)
-        s.set_context(user_id, 1)
-    elif text == ms.KEY_CONTACT:
-        profile = line_bot_api.get_profile(user_id)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
-        s.set_context(user_id, 1)
-        s.set_type(user_id, st.Type.CONTACT)
-        res = slack.start_contact(profile.display_name)
-        con.register(user_id, res['message']['ts'])
+        user.set_session_stage(2)
+        user.set_session_type(st.Type.BN_CREATE)
+    # elif text == ms.KEY_CATCHER:
+    #     # TODO
+    #     cs.register(user_id)
+    #     schedule.run_pending()
+    #     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
+    #     msg = ms.MSG_CATCHER_CONFIRM
+    #     tag, q = cs.get_question(user_id)
+    #     msg.alt_text = q
+    #     msg.template.text = q
+    #     line_bot_api.push_message(user_id, msg)
+    #     s.set_type(user_id, st.Type.CATCH_REC)
+    #     s.set_context(user_id, 1)
+    # elif text == ms.KEY_CONTACT:
+    #     profile = line_bot_api.get_profile(user_id)
+    #     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
+    #     s.set_context(user_id, 1)
+    #     s.set_type(user_id, st.Type.CONTACT)
+    #     res = slack.start_contact(profile.display_name)
+    #     con.register(user_id, res['message']['ts'])
     else:
         line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
 
 
-def handle_catcher_rec(event):
-    user_id = event.source.user_id
-    text = event.message.text
-    if cs.catcher_question[user_id] is None:
-        if text == 'No':
-            cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
-        else:
-            rec = cs.get_rec(user_id)
-            if rec is not None:
-                send_rec(event, user_id, rec)
-                return
-    else:
-        if text == 'Yes':
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
-            s.reset(user_id)
-            return
-        elif text == 'No':
-            cs.cand_by_user[user_id].remove(cs.catcher_question[user_id])
-        rec = cs.get_rec(user_id)
-        if rec is not None:
-            send_rec(event, user_id, rec)
-            return
-    tag, q = cs.get_question(user_id)
-    if not tag:
-        if len(cs.cand_by_user[user_id]) == 0:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
-        else:
-            rec = random.choice(cs.cand_by_user[user_id])
-            msg = ms.MSG_CATCHER_END
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-            line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
-        s.reset(user_id)
-    else:
-        cs.catcher_question[user_id] = None
-        msg = ms.MSG_CATCHER_CONFIRM
-        msg.alt_text = q
-        msg.template.text = q
-        line_bot_api.reply_message(event.reply_token, msg)
+# def handle_catcher_rec(event):
+#     user_id = event.source.user_id
+#     text = event.message.text
+#     if cs.catcher_question[user_id] is None:
+#         if text == 'No':
+#             cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
+#         else:
+#             rec = cs.get_rec(user_id)
+#             if rec is not None:
+#                 send_rec(event, user_id, rec)
+#                 return
+#     else:
+#         if text == 'Yes':
+#             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
+#             s.reset(user_id)
+#             return
+#         elif text == 'No':
+#             cs.cand_by_user[user_id].remove(cs.catcher_question[user_id])
+#         rec = cs.get_rec(user_id)
+#         if rec is not None:
+#             send_rec(event, user_id, rec)
+#             return
+#     tag, q = cs.get_question(user_id)
+#     if not tag:
+#         if len(cs.cand_by_user[user_id]) == 0:
+#             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
+#         else:
+#             rec = random.choice(cs.cand_by_user[user_id])
+#             msg = ms.MSG_CATCHER_END
+#             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
+#             line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
+#         s.reset(user_id)
+#     else:
+#         cs.catcher_question[user_id] = None
+#         msg = ms.MSG_CATCHER_CONFIRM
+#         msg.alt_text = q
+#         msg.template.text = q
+#         line_bot_api.reply_message(event.reply_token, msg)
 
 
-def handle_route_bn_create(event):
-    user_id = event.source.user_id
+def handle_route_bn_create(user, event):
     text = event.message.text
-    s.set_context(user_id, 1)
+    user.set_session_stage(1)
     if text == ms.MSG_BN_CREATE_3_1:
-        s.set_type(user_id, st.Type.BN_CREATE_TRACK1)
+        user.set_session_type(st.Type.BN_CREATE_TRACK1)
     elif text == ms.MSG_BN_CREATE_3_2:
-        s.set_type(user_id, st.Type.BN_CREATE_TRACK2)
+        user.set_session_type(st.Type.BN_CREATE_TRACK2)
     elif text == ms.MSG_BN_CREATE_3_3:
-        s.set_type(user_id, st.Type.BN_CREATE_TRACK3)
+        user.set_session_type(st.Type.BN_CREATE_TRACK3)
     elif text == ms.MSG_BN_CREATE_3_5:
-        s.set_type(user_id, st.Type.BN_CREATE_TRACK5)
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user_id)))
+        user.set_session_type(st.Type.BN_CREATE_TRACK5)
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user)))
 
 
 def send_rec(event, user_id, rec):
@@ -264,32 +277,30 @@ def send_rec(event, user_id, rec):
     line_bot_api.push_message(user_id, msg)
 
 
-def route_bn_create(user_id: str):
-    ss_type = s.get_type(user_id)
-    ctx = s.get_context(user_id)
-    s.increment_context(user_id)
+def route_bn_create(user: User):
+    ss_type = user.get_session_type()
+    ss_stage = user.get_session_stage()
+    user.increment_context()
 
-    if ss_type in ms.type_dict:
-        bn_dict = ms.type_dict[ss_type]
-
-    if ctx in bn_dict:
-        if bn_dict[ctx] == ms.MSG_END:
-            s.reset(user_id)
-        return bn_dict[ctx]
+    bn_dict = ms.type_dict[ss_type]
+    if ss_stage in bn_dict:
+        if bn_dict[ss_stage] == ms.MSG_END:
+            user.reset()
+        return bn_dict[ss_stage]
 
 
-def route_next(user_id: str):
-    ctx = s.get_context(user_id)
-    ss_type = s.get_type(user_id)
+def route_next(user: User):
+    ss_stage = user.session_stage
+    ss_type = user.session_type
     if ss_type == st.Type.BN_CREATE:
-        s.increment_context(user_id)
-        if ctx == 2:
+        user.increment_session_stage()
+        if ss_stage == 2:
             return ms.MSG_BN_CREATE_2
-        elif ctx == 3:
+        elif ss_stage == 3:
             return ms.MSG_BN_CREATE_3
     elif ss_type in (
             st.Type.BN_CREATE_TRACK1, st.Type.BN_CREATE_TRACK2, st.Type.BN_CREATE_TRACK3, st.Type.BN_CREATE_TRACK5):
-        return route_bn_create(user_id)
+        return route_bn_create(user)
 
 
 def reply_contact(event):
@@ -302,5 +313,4 @@ def reply_contact(event):
 
 if __name__ == "__main__":
     # app.run()
-    # db.create_all()
     app.run(host='0.0.0.0')
