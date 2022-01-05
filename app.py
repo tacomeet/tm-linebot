@@ -28,6 +28,7 @@ import models.message as ms
 import slack
 import models
 
+
 def create_app():
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
@@ -36,6 +37,7 @@ def create_app():
     init_db(app)
 
     return app
+
 
 app = create_app()
 

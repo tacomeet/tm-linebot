@@ -19,7 +19,7 @@ CREATE TYPE "user_status" AS ENUM (
 --   "created_at" timestamp NOT NULL DEFAULT (now())
 -- );
 
-CREATE TABLE "threads" (
-  "ts" varchar PRIMARY KEY,
-  "user_id" int NOT NULL
-);
+-- CREATE TABLE "threads" (
+--   "ts" varchar PRIMARY KEY,
+--   "user_id" int NOT NULL
+-- );
