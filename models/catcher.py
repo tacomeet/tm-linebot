@@ -4,7 +4,7 @@ import sys
 
 import requests
 
-import models.question as question
+import const.question as question
 
 BASE_URL = 'https://teenmakers.jp/wp-json/wp/v2/'
 DEFAULT_PER_PAGE = 10

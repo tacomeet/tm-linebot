@@ -2,11 +2,9 @@ import logging
 import sys
 import random
 import json
-from datetime import datetime
 
 import schedule as schedule
 from flask import Flask, abort, request, Response
-from flask_sqlalchemy import SQLAlchemy
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -24,9 +22,10 @@ import models.status as st
 import models.session as ss
 import config
 from database.database import init_db, db, get_db_uri
-import models.message as ms
+import const.message as ms
 import slack
 import models
+from models import User
 
 
 def create_app():
@@ -58,7 +57,6 @@ handler = WebhookHandler(channel_secret)
 s = ss.Session()
 cs = catcher.Catchers()
 con = contact.Contact()
-display_name = {}
 
 schedule.every(1).week.do(cs.refresh)
 
@@ -66,8 +64,9 @@ schedule.every(1).week.do(cs.refresh)
 @app.route('/test', methods=["GET"])
 def test():
     users = models.User.query.all()
-    print(users)
-    return Response(json.dumps({"status": "OK"}), mimetype='application/json')
+    if len(users) == 0:
+        return 'no user'
+    return Response(json.dumps(users[0].__dict__), mimetype='application/json')
 
 
 @app.route('/', methods=["POST"])
@@ -110,19 +109,28 @@ def callback():
 def handle_follow(event):
     user_id = event.source.user_id
     profile = line_bot_api.get_profile(user_id)
+
+    # send welcome message on LINE
     msg = ms.MSG_DEFAULT
     msg.template.title = profile.display_name + 'さん、はじめまして！\n' \
                                                 '友達追加ありがとうございます！'
-    line_bot_api.reply_message(event.reply_token, msg)
     msg.template.title = 'メッセージありがとうございます！'
-    display_name[user_id] = profile.display_name
+    line_bot_api.reply_message(event.reply_token, msg)
+
+    # add user to db
+    user = User(id=user_id, name=profile.display_name)
+    db.session.add(user)
+    db.session.commit()
+
+    # send message to slack
     slack.send_message(f'{profile.display_name}さんが追加しました！')
 
 
 @handler.add(UnfollowEvent)
 def handle_unfollow(event):
     user_id = event.source.user_id
-    slack.send_message(f'{display_name.get(user_id)}さんがブロックしました...')
+    u = User.query.get(user_id)
+    slack.send_message(f'{u.name}さんがブロックしました...')
 
 
 @handler.add(MessageEvent, message=TextMessage)

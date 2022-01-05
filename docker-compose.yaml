@@ -15,8 +15,8 @@ services:
     volumes:
       - .:/app
     command: >
-      sh -c "python app.py"
-#      sh -c "jurigged app.py"
+      sh -c "jurigged app.py"
+#      sh -c "python app.py"
     depends_on:
       - postgresql
 
