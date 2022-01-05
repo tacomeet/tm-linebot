@@ -16,7 +16,7 @@ class User(db.Model):
         self.id = id
         self.thread_ts = ts
 
-def register(user_id: str, ts: str):
+def register_thread(user_id: str, ts: str):
     con = db.session.query(User).filter_by(id=user_id).first()
     if con is None:
         con = User(user_id, ts)
@@ -25,10 +25,10 @@ def register(user_id: str, ts: str):
     db.session.add(con)
     db.session.commit()
 
-def get_thread(user_id):
+def get_thread_by_id(user_id):
     user = db.session.query(User).filter_by(id=user_id).first()
     return user.thread_ts
 
-def get_user(thread_ts):
+def get_user_by_thread_ts(thread_ts):
     user = db.session.query(User).filter_by(thread_ts=thread_ts).first()
     return user.id
