@@ -278,9 +278,9 @@ def send_rec(event, user_id, rec):
 
 
 def route_bn_create(user: User):
-    ss_type = user.get_session_type()
-    ss_stage = user.get_session_stage()
-    user.increment_context()
+    ss_stage = user.session_stage
+    ss_type = user.session_type
+    user.increment_session_stage()
 
     bn_dict = ms.type_dict[ss_type]
     if ss_stage in bn_dict:
