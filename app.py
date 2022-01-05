@@ -2,7 +2,6 @@ import logging
 import sys
 import random
 import json
-from datetime import datetime
 
 import schedule as schedule
 from flask import Flask, abort, request, Response
@@ -24,7 +23,7 @@ import models.status as st
 import models.session as ss
 import config
 from database.database import init_db, db, get_db_uri
-import models.message as ms
+import const.message as ms
 import slack
 import models
 
@@ -57,7 +56,6 @@ handler = WebhookHandler(channel_secret)
 
 s = ss.Session()
 cs = catcher.Catchers()
-con = contact.Contact()
 display_name = {}
 
 schedule.every(1).week.do(cs.refresh)
@@ -67,6 +65,13 @@ schedule.every(1).week.do(cs.refresh)
 def test():
     users = models.User.query.all()
     print(users)
+    return Response(json.dumps({"status": "OK"}), mimetype='application/json')
+
+@app.route('/test/contact', methods=["GET"])
+def test_contact():
+    con = contact.Contact("0000", "0001")
+    db.session.add(con)
+    db.session.commit()
     return Response(json.dumps({"status": "OK"}), mimetype='application/json')
 
 
@@ -143,7 +148,7 @@ def handle_text_message(event):
         handle_catcher_rec(event)
     elif ss_type == st.Type.CONTACT:
         profile = line_bot_api.get_profile(user_id)
-        slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
+        slack.send_msg_to_thread(profile.display_name, text, contact.get_thread(user_id))
     elif text == '次':
         handle_next(event)
     elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
@@ -186,7 +191,8 @@ def handle_ctx0(event):
         s.set_context(user_id, 1)
         s.set_type(user_id, st.Type.CONTACT)
         res = slack.start_contact(profile.display_name)
-        con.register(user_id, res['message']['ts'])
+        print(type(res['message']['ts']))
+        contact.register(user_id, res['message']['ts'])
     else:
         line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
 
@@ -287,7 +293,7 @@ def route_next(user_id: str):
 def reply_contact(event):
     if 'bot_id' not in event:
         thread_ts = event['thread_ts']
-        user_id = con.get_user(thread_ts)
+        user_id = contact.get_user(thread_ts)
         msg = event['text']
         line_bot_api.push_message(user_id, TextSendMessage(text=msg))
 
