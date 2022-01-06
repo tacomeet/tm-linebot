@@ -10,6 +10,8 @@ LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
 
 def get_db_uri():
     uri = os.environ.get('DATABASE_URL')
+    if uri and uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
     if uri is None:
         db_user = os.environ['DB_USER']
         db_password = os.environ['DB_PASSWORD']
