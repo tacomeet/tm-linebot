@@ -16,7 +16,6 @@ from linebot.models import (
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-import models.contact as contact
 from models.status_type import StatusType
 import config
 from database.database import init_db, db
@@ -120,18 +119,18 @@ def handle_follow(event):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        slack.send_message(f'{profile.display_name}さんが再追加しました！')
+        slack.refollow(user.get_name())
         return
 
     # send message to slack
-    slack.send_message(f'{profile.display_name}さんが追加しました！')
+    slack.follow(user.get_name())
 
 
 @handler.add(UnfollowEvent)
 def handle_unfollow(event):
     user_id = event.source.user_id
-    u = User.query.get(user_id)
-    slack.send_message(f'{u.name}さんがブロックしました...')
+    user = User.query.get(user_id)
+    slack.block(user.get_name())
 
 
 @handler.add(MessageEvent, message=TextMessage)
@@ -181,9 +180,11 @@ def handle_stage0(user, event):
     user_id = event.source.user_id
     if text == ms.KEY_SELF_REFLECTION:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REFLECTION))
+        slack.start_self_rec(user.get_name())
     elif text == ms.KEY_BN_CREATE:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_BN_CREATE))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
+        slack.start_bn_creation(user.get_name())
         user.set_session_stage(2)
         user.set_session_type(StatusType.BN_CREATE)
     elif text == ms.KEY_CATCHER:
@@ -192,6 +193,7 @@ def handle_stage0(user, event):
         cr.refresh_catcher_tag()
 
         cr.register(user_id)
+        slack.start_catcher_rec(user.get_name())
 
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
 
@@ -207,11 +209,10 @@ def handle_stage0(user, event):
         user.set_session_type(StatusType.CATCH_REC)
         user.set_session_stage(1)
     elif text == ms.KEY_CONTACT:
-        profile = line_bot_api.get_profile(user_id)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
         user.set_session_stage(1)
         user.set_session_type(StatusType.CONTACT)
-        res = slack.start_contact(profile.display_name)
+        res = slack.start_contact(user.get_name())
         user.set_thread_ts(res['message']['ts'])
         db.session.add(user)
     else:

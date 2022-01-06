@@ -2,7 +2,6 @@ from slack_sdk import WebClient
 
 import config
 
-
 # Load channel from config?
 CHANNEL_CONTACT = '#line-contact'
 CHANNEL_OTHER = '#line-other'
@@ -20,3 +19,27 @@ def start_contact(name):
 
 def send_msg_to_thread(name, content, ts):
     send_message(name + 'さんからのお問い合わせ内容：\n' + content, ts)
+
+
+def follow(name):
+    return send_message(f'{name}さんが追加しました...')
+
+
+def refollow(name):
+    return send_message(f'{name}さんが再追加しました...')
+
+
+def block(name):
+    return send_message(f'{name}さんがブロックしました...')
+
+
+def start_self_rec(name):
+    return send_message(name + 'さんが自己分析を開始しました！')
+
+
+def start_bn_creation(name):
+    return send_message(name + 'さんがBN作成を開始しました！')
+
+
+def start_catcher_rec(name):
+    return send_message(name + 'さんがロールモデルマッチングを始めました！')
