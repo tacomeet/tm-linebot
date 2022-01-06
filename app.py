@@ -307,7 +307,7 @@ def route_next(user: User):
 
 
 def reply_contact(event):
-    if 'bot_id' not in event:
+    if 'bot_id' not in event and 'thread_ts' in event:
         thread_ts = event['thread_ts']
         user = User.query.filter_by(thread_ts=thread_ts).first()
         user_id = user.get_id()
