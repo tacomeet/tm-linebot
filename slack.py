@@ -3,7 +3,7 @@ from slack_sdk import WebClient
 import config
 
 # Load channel from config?
-CHANNEL_CONTACT = '#line-contact'
+CHANNEL_CONTACT = '#line'
 CHANNEL_OTHER = '#line-other'
 token = config.SLACK_TOKEN
 client = WebClient(token=token)
