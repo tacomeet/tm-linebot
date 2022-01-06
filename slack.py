@@ -14,7 +14,7 @@ def send_message(msg, ts=None, channel=CHANNEL_OTHER):
 
 
 def start_contact(name):
-    return send_message(name + 'さんからお問い合わせがありました！', CHANNEL_CONTACT)
+    return send_message(name + 'さんからお問い合わせがありました！', channel=CHANNEL_CONTACT)
 
 
 def send_msg_to_thread(name, content, ts):
