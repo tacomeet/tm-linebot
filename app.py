@@ -53,8 +53,6 @@ if channel_secret is None or channel_access_token is None:
 line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
-con = contact.Contact()
-
 # somehow RuntimeError happens
 # cr.setup_catcher_tag()
 schedule.every(1).week.do(cr.refresh_catcher_tag)
@@ -162,7 +160,7 @@ def handle_text_message(event):
         handle_catcher_rec(user, event)
     elif ss_type == StatusType.CONTACT:
         profile = line_bot_api.get_profile(user_id)
-        slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
+        slack.send_msg_to_thread(profile.display_name, text, user.get_thread_ts())
     elif text == '次':
         handle_next(user, event)
     elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
@@ -214,7 +212,8 @@ def handle_stage0(user, event):
         user.set_session_stage(1)
         user.set_session_type(StatusType.CONTACT)
         res = slack.start_contact(profile.display_name)
-        con.register(user_id, res['message']['ts'])
+        user.set_thread_ts(res['message']['ts'])
+        db.session.add(user)
     else:
         line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
 
@@ -309,7 +308,8 @@ def route_next(user: User):
 def reply_contact(event):
     if 'bot_id' not in event:
         thread_ts = event['thread_ts']
-        user_id = con.get_user(thread_ts)
+        user = User.query.filter_by(thread_ts=thread_ts).first()
+        user_id = user.get_id()
         msg = event['text']
         line_bot_api.push_message(user_id, TextSendMessage(text=msg))
 
