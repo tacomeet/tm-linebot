@@ -17,7 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import models.contact as contact
-import models.status as st
+from models.status_type import StatusType
 import config
 from database.database import init_db, db, get_db_uri
 import const.message as ms
@@ -158,9 +158,9 @@ def handle_text_message(event):
         cr.reset(user_id)
     elif ss_stage == 0:
         handle_stage0(user, event)
-    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
+    elif ss_type == StatusType.CATCH_REC and text in ['Yes', 'No']:
         handle_catcher_rec(user, event)
-    elif ss_type == st.Type.CONTACT:
+    elif ss_type == StatusType.CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
     elif text == '次':
@@ -187,7 +187,7 @@ def handle_stage0(user, event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_BN_CREATE))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
         user.set_session_stage(2)
-        user.set_session_type(st.Type.BN_CREATE)
+        user.set_session_type(StatusType.BN_CREATE)
     elif text == ms.KEY_CATCHER:
         # execute cron job
         # schedule.run_pending()
@@ -206,13 +206,13 @@ def handle_stage0(user, event):
         msg.template.text = q
         line_bot_api.push_message(user_id, msg)
 
-        user.set_session_type(st.Type.CATCH_REC)
+        user.set_session_type(StatusType.CATCH_REC)
         user.set_session_stage(1)
     elif text == ms.KEY_CONTACT:
         profile = line_bot_api.get_profile(user_id)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
         user.set_session_stage(1)
-        user.set_session_type(st.Type.CONTACT)
+        user.set_session_type(StatusType.CONTACT)
         res = slack.start_contact(profile.display_name)
         con.register(user_id, res['message']['ts'])
     else:
@@ -258,13 +258,13 @@ def handle_route_bn_create(user, event):
     text = event.message.text
     user.set_session_stage(1)
     if text == ms.MSG_BN_CREATE_3_1:
-        user.set_session_type(st.Type.BN_CREATE_TRACK1)
+        user.set_session_type(StatusType.BN_CREATE_TRACK1)
     elif text == ms.MSG_BN_CREATE_3_2:
-        user.set_session_type(st.Type.BN_CREATE_TRACK2)
+        user.set_session_type(StatusType.BN_CREATE_TRACK2)
     elif text == ms.MSG_BN_CREATE_3_3:
-        user.set_session_type(st.Type.BN_CREATE_TRACK3)
+        user.set_session_type(StatusType.BN_CREATE_TRACK3)
     elif text == ms.MSG_BN_CREATE_3_5:
-        user.set_session_type(st.Type.BN_CREATE_TRACK5)
+        user.set_session_type(StatusType.BN_CREATE_TRACK5)
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user)))
 
 
@@ -294,14 +294,15 @@ def route_bn_create(user: User):
 def route_next(user: User):
     ss_stage = user.session_stage
     ss_type = user.session_type
-    if ss_type == st.Type.BN_CREATE:
+    if ss_type == StatusType.BN_CREATE:
         user.increment_session_stage()
         if ss_stage == 2:
             return ms.MSG_BN_CREATE_2
         elif ss_stage == 3:
             return ms.MSG_BN_CREATE_3
     elif ss_type in (
-            st.Type.BN_CREATE_TRACK1, st.Type.BN_CREATE_TRACK2, st.Type.BN_CREATE_TRACK3, st.Type.BN_CREATE_TRACK5):
+            StatusType.BN_CREATE_TRACK1, StatusType.BN_CREATE_TRACK2, StatusType.BN_CREATE_TRACK3,
+            StatusType.BN_CREATE_TRACK5):
         return route_bn_create(user)
 
 

@@ -2,7 +2,7 @@ import requests
 from linebot.models import MessageAction, ButtonsTemplate, TemplateSendMessage, ConfirmTemplate, BubbleContainer, \
     URIAction, ImageComponent, BoxComponent, TextComponent, ButtonComponent, SeparatorComponent
 
-import models.status as st
+from models.status_type import StatusType
 
 # default commands
 KEY_END = '終了'
@@ -65,10 +65,10 @@ bn_dict_2 = {1: MSG_BN_CREATE_T2_1, 2: MSG_BN_CREATE_T2_2, 3: MSG_BN_CREATE_T2_3
 bn_dict_3 = {1: MSG_BN_CREATE_T3_1, 2: MSG_BN_CREATE_T3_2, 3: MSG_END}
 bn_dict_4 = {1: MSG_BN_CREATE_T5_1, 2: MSG_BN_CREATE_T5_2, 3: MSG_END}
 
-type_dict = {st.Type.BN_CREATE_TRACK1: bn_dict_1,
-             st.Type.BN_CREATE_TRACK2: bn_dict_2,
-             st.Type.BN_CREATE_TRACK3: bn_dict_3,
-             st.Type.BN_CREATE_TRACK5: bn_dict_4}
+type_dict = {StatusType.BN_CREATE_TRACK1: bn_dict_1,
+             StatusType.BN_CREATE_TRACK2: bn_dict_2,
+             StatusType.BN_CREATE_TRACK3: bn_dict_3,
+             StatusType.BN_CREATE_TRACK5: bn_dict_4}
 
 # Catcher
 KEY_CATCHER = 'ロールモデル'
@@ -206,7 +206,6 @@ MSG_DEFAULT = TemplateSendMessage(
             MessageAction(label='ロールモデルマッチング', text=KEY_CATCHER),
             MessageAction(label='運営にお問い合わせ', text=KEY_CONTACT),
         ]))
-
 
 
 def main():
