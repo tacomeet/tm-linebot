@@ -29,6 +29,7 @@ class Catchers:
         self.cand_by_user = {}
         self.used_tags = {}
         self.catcher_question = {}
+
         self.refresh()
 
     def register(self, user_id):

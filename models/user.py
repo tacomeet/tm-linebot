@@ -10,6 +10,8 @@ class User(db.Model):
     session_type = db.Column(db.Integer())
     session_stage = db.Column(db.Integer())
     thread_ts = db.Column(db.String())
+    is_matched = db.Column(db.Boolean())
+    last_question_id = db.Column(db.Integer())
     created_at = db.Column(db.DateTime(), default=datetime.now)
 
     def __init__(self, id, name, session_type=None, session_stage=0, thread_ts=None):
@@ -18,6 +20,8 @@ class User(db.Model):
         self.session_type = session_type
         self.session_stage = session_stage
         self.thread_ts = thread_ts
+        self.is_matched = False
+        self.last_question_id = None
 
     def reset(self):
         self.session_type = None
@@ -31,3 +35,13 @@ class User(db.Model):
 
     def increment_session_stage(self):
         self.session_stage += 1
+
+    def matched(self):
+        self.matched = True
+
+    def not_matched(self):
+        self.matched = False
+
+    def set_last_question(self, question_id):
+        # question_id is either tag id or catcher id
+        self.last_question_id = question_id

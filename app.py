@@ -1,6 +1,5 @@
 import logging
 import sys
-import random
 import json
 
 import schedule as schedule
@@ -14,18 +13,18 @@ from linebot.exceptions import (
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, FollowEvent, UnfollowEvent,
 )
+from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-import models.catcher as catcher
 import models.contact as contact
 import models.status as st
-import models.session as ss
 import config
 from database.database import init_db, db, get_db_uri
 import const.message as ms
 import slack
 import models
 from models import User
+import catcher_rec as cr
 
 
 def create_app():
@@ -54,11 +53,11 @@ if channel_secret is None or channel_access_token is None:
 line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
-# s = ss.Session()
-cs = catcher.Catchers()
 con = contact.Contact()
 
-schedule.every(1).week.do(cs.refresh)
+# somehow RuntimeError happens
+# cr.setup_catcher_tag()
+schedule.every(1).week.do(cr.refresh_catcher_tag)
 
 
 @app.route('/test', methods=["GET"])
@@ -121,7 +120,7 @@ def handle_follow(event):
     db.session.add(user)
     try:
         db.session.commit()
-    except:
+    except IntegrityError:
         db.session.rollback()
         slack.send_message(f'{profile.display_name}さんが再追加しました！')
         return
@@ -156,11 +155,11 @@ def handle_text_message(event):
     if ss_stage != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         user.reset()
+        cr.reset(user_id)
     elif ss_stage == 0:
         handle_stage0(user, event)
-    # elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
-    #     # TODO
-    #     handle_catcher_rec(event)
+    elif ss_type == st.Type.CATCH_REC and text in ['Yes', 'No']:
+        handle_catcher_rec(user, event)
     elif ss_type == st.Type.CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg_to_thread(profile.display_name, text, con.get_thread(user_id))
@@ -168,7 +167,6 @@ def handle_text_message(event):
         handle_next(user, event)
     elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
         handle_route_bn_create(user, event)
-    print(user)
     db.session.commit()
 
 
@@ -190,67 +188,70 @@ def handle_stage0(user, event):
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
         user.set_session_stage(2)
         user.set_session_type(st.Type.BN_CREATE)
-    # elif text == ms.KEY_CATCHER:
-    #     # TODO
-    #     cs.register(user_id)
-    #     schedule.run_pending()
-    #     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
-    #     msg = ms.MSG_CATCHER_CONFIRM
-    #     tag, q = cs.get_question(user_id)
-    #     msg.alt_text = q
-    #     msg.template.text = q
-    #     line_bot_api.push_message(user_id, msg)
-    #     s.set_type(user_id, st.Type.CATCH_REC)
-    #     s.set_context(user_id, 1)
-    # elif text == ms.KEY_CONTACT:
-    #     profile = line_bot_api.get_profile(user_id)
-    #     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
-    #     s.set_context(user_id, 1)
-    #     s.set_type(user_id, st.Type.CONTACT)
-    #     res = slack.start_contact(profile.display_name)
-    #     con.register(user_id, res['message']['ts'])
+    elif text == ms.KEY_CATCHER:
+        # execute cron job
+        # schedule.run_pending()
+        cr.refresh_catcher_tag()
+
+        cr.register(user_id)
+
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
+
+        msg = ms.MSG_CATCHER_CONFIRM
+        tag, q = cr.get_question(user_id)
+        user.last_question_id = tag
+        user.is_matched = False
+
+        msg.alt_text = q
+        msg.template.text = q
+        line_bot_api.push_message(user_id, msg)
+
+        user.set_session_type(st.Type.CATCH_REC)
+        user.set_session_stage(1)
+    elif text == ms.KEY_CONTACT:
+        profile = line_bot_api.get_profile(user_id)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CONTACT_DEFAULT))
+        user.set_session_stage(1)
+        user.set_session_type(st.Type.CONTACT)
+        res = slack.start_contact(profile.display_name)
+        con.register(user_id, res['message']['ts'])
     else:
         line_bot_api.reply_message(event.reply_token, ms.MSG_DEFAULT)
 
 
-# def handle_catcher_rec(event):
-#     user_id = event.source.user_id
-#     text = event.message.text
-#     if cs.catcher_question[user_id] is None:
-#         if text == 'No':
-#             cs.exclude_tag(user_id, cs.used_tags[user_id][-1])
-#         else:
-#             rec = cs.get_rec(user_id)
-#             if rec is not None:
-#                 send_rec(event, user_id, rec)
-#                 return
-#     else:
-#         if text == 'Yes':
-#             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
-#             s.reset(user_id)
-#             return
-#         elif text == 'No':
-#             cs.cand_by_user[user_id].remove(cs.catcher_question[user_id])
-#         rec = cs.get_rec(user_id)
-#         if rec is not None:
-#             send_rec(event, user_id, rec)
-#             return
-#     tag, q = cs.get_question(user_id)
-#     if not tag:
-#         if len(cs.cand_by_user[user_id]) == 0:
-#             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
-#         else:
-#             rec = random.choice(cs.cand_by_user[user_id])
-#             msg = ms.MSG_CATCHER_END
-#             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-#             line_bot_api.push_message(user_id, FlexSendMessage(alt_text="hello", contents=ms.get_catcher(rec)))
-#         s.reset(user_id)
-#     else:
-#         cs.catcher_question[user_id] = None
-#         msg = ms.MSG_CATCHER_CONFIRM
-#         msg.alt_text = q
-#         msg.template.text = q
-#         line_bot_api.reply_message(event.reply_token, msg)
+def handle_catcher_rec(user, event):
+    user_id = event.source.user_id
+    text = event.message.text
+    possible_to_match = True
+    if user.is_matched:
+        if text == 'Yes':
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
+            cr.reset(user_id)
+            user.reset()
+            return
+        else:
+            cr.exclude_catcher(user_id, user.last_question_id)
+    else:
+        if text == 'No':
+            cr.exclude_tag(user_id, user.last_question_id)
+            possible_to_match = False
+    if possible_to_match:
+        catcher_id = cr.get_rec(user_id)
+        if catcher_id is not None:
+            send_rec(user, event, catcher_id)
+            return
+    tag, q = cr.get_question(user_id)
+    if not tag:
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
+        cr.reset(user_id)
+        user.reset()
+    else:
+        user.last_question_id = tag
+        user.is_matched = False
+        msg = ms.MSG_CATCHER_CONFIRM
+        msg.alt_text = q
+        msg.template.text = q
+        line_bot_api.reply_message(event.reply_token, msg)
 
 
 def handle_route_bn_create(user, event):
@@ -267,14 +268,15 @@ def handle_route_bn_create(user, event):
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user)))
 
 
-def send_rec(event, user_id, rec):
-    cs.catcher_question[user_id] = rec
+def send_rec(user: User, event, catcher_id):
+    user.last_question_id = catcher_id
+    user.is_matched = True
     msg = ms.MSG_CATCHER_CONFIRM
     msg.alt_text = ms.MSG_CATCHER_CONFIRM_TEXT
     msg.template.text = ms.MSG_CATCHER_CONFIRM_TEXT
     line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text="catcher profile",
-                                                                  contents=ms.get_catcher(rec)))
-    line_bot_api.push_message(user_id, msg)
+                                                                  contents=ms.get_catcher(catcher_id)))
+    line_bot_api.push_message(user.id, msg)
 
 
 def route_bn_create(user: User):
