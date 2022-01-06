@@ -27,8 +27,14 @@ class User(db.Model):
         self.session_type = None
         self.session_stage = 0
 
+    def get_session_stage(self):
+        return self.session_stage
+
     def set_session_stage(self, session_stage):
         self.session_stage = session_stage
+
+    def get_session_type(self):
+        return self.session_type
 
     def set_session_type(self, session_type):
         self.session_type = session_type
@@ -36,12 +42,12 @@ class User(db.Model):
     def increment_session_stage(self):
         self.session_stage += 1
 
-    def matched(self):
-        self.matched = True
+    def get_is_matched(self):
+        return self.is_matched
 
-    def not_matched(self):
-        self.matched = False
+    def set_is_matched(self, is_matched):
+        self.is_matched = is_matched
 
-    def set_last_question(self, question_id):
+    def set_last_question_id(self, question_id):
         # question_id is either tag id or catcher id
         self.last_question_id = question_id

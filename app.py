@@ -19,7 +19,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import models.contact as contact
 from models.status_type import StatusType
 import config
-from database.database import init_db, db, get_db_uri
+from database.database import init_db, db
 import const.message as ms
 import slack
 import models
@@ -30,7 +30,7 @@ import catcher_rec as cr
 def create_app():
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = get_db_uri()
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.get_db_uri()
 
     init_db(app)
 
@@ -149,8 +149,8 @@ def handle_text_message(event):
         db.session.add(user)
         db.session.commit()
         user = User.query.get(user_id)
-    ss_stage = user.session_stage
-    ss_type = user.session_type
+    ss_stage = user.get_session_stage()
+    ss_type = user.get_session_type()
 
     if ss_stage != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
@@ -198,12 +198,12 @@ def handle_stage0(user, event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER))
 
         msg = ms.MSG_CATCHER_CONFIRM
-        tag, q = cr.get_question(user_id)
-        user.last_question_id = tag
-        user.is_matched = False
+        tag_id, question = cr.get_question(user_id)
+        user.set_last_question_id(tag_id)
+        user.set_is_matched(False)
 
-        msg.alt_text = q
-        msg.template.text = q
+        msg.alt_text = question
+        msg.template.text = question
         line_bot_api.push_message(user_id, msg)
 
         user.set_session_type(StatusType.CATCH_REC)
@@ -223,7 +223,7 @@ def handle_catcher_rec(user, event):
     user_id = event.source.user_id
     text = event.message.text
     possible_to_match = True
-    if user.is_matched:
+    if user.get_is_matched():
         if text == 'Yes':
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
             cr.reset(user_id)
@@ -240,17 +240,17 @@ def handle_catcher_rec(user, event):
         if catcher_id is not None:
             send_rec(user, event, catcher_id)
             return
-    tag, q = cr.get_question(user_id)
-    if not tag:
+    tag_id, question = cr.get_question(user_id)
+    if not tag_id:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_SORRY))
         cr.reset(user_id)
         user.reset()
     else:
-        user.last_question_id = tag
-        user.is_matched = False
+        user.last_question_id = tag_id
+        user.set_is_matched(False)
         msg = ms.MSG_CATCHER_CONFIRM
-        msg.alt_text = q
-        msg.template.text = q
+        msg.alt_text = question
+        msg.template.text = question
         line_bot_api.reply_message(event.reply_token, msg)
 
 
@@ -269,8 +269,8 @@ def handle_route_bn_create(user, event):
 
 
 def send_rec(user: User, event, catcher_id):
-    user.last_question_id = catcher_id
-    user.is_matched = True
+    user.set_last_question_id(catcher_id)
+    user.set_is_matched(True)
     msg = ms.MSG_CATCHER_CONFIRM
     msg.alt_text = ms.MSG_CATCHER_CONFIRM_TEXT
     msg.template.text = ms.MSG_CATCHER_CONFIRM_TEXT
@@ -280,8 +280,8 @@ def send_rec(user: User, event, catcher_id):
 
 
 def route_bn_create(user: User):
-    ss_stage = user.session_stage
-    ss_type = user.session_type
+    ss_stage = user.get_session_stage()
+    ss_type = user.get_session_type()
     user.increment_session_stage()
 
     bn_dict = ms.type_dict[ss_type]
@@ -292,8 +292,8 @@ def route_bn_create(user: User):
 
 
 def route_next(user: User):
-    ss_stage = user.session_stage
-    ss_type = user.session_type
+    ss_stage = user.get_session_stage()
+    ss_type = user.get_session_type()
     if ss_type == StatusType.BN_CREATE:
         user.increment_session_stage()
         if ss_stage == 2:
