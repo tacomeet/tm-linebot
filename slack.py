@@ -1,8 +1,7 @@
 from slack_sdk import WebClient
-import requests
 
 import config
-import contact
+
 
 # Load channel from config?
 channel = '#api'
