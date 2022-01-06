@@ -27,6 +27,9 @@ class User(db.Model):
         self.session_type = None
         self.session_stage = 0
 
+    def get_id(self):
+        return self.id
+
     def get_session_stage(self):
         return self.session_stage
 
@@ -41,6 +44,12 @@ class User(db.Model):
 
     def increment_session_stage(self):
         self.session_stage += 1
+
+    def get_thread_ts(self):
+        return self.thread_ts
+    
+    def set_thread_ts(self, thread_ts):
+        self.thread_ts = thread_ts
 
     def get_is_matched(self):
         return self.is_matched
