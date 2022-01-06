@@ -30,6 +30,9 @@ class User(db.Model):
     def get_id(self):
         return self.id
 
+    def get_name(self):
+        return self.name
+
     def get_session_stage(self):
         return self.session_stage
 
