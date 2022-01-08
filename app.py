@@ -24,6 +24,7 @@ import slack
 import models
 from models import User
 import catcher_rec as cr
+import spreadsheet
 
 
 def create_app():
@@ -63,6 +64,15 @@ def test():
     if len(users) == 0:
         return 'no user'
     return Response(json.dumps(users[0].__dict__), mimetype='application/json')
+
+
+@app.route('/test/gspread', methods=["GET"])
+def test_gspread():
+    workbook = config.connect_gspread()
+    worksheet = workbook.worksheet('user')
+    df = spreadsheet.get_worksheet_as_dataframe(worksheet)
+    print(df)
+    return Response(df.to_json(), mimetype='application/json')
 
 
 @app.route('/', methods=["POST"])
