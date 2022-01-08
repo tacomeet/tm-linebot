@@ -50,7 +50,7 @@ class User(db.Model):
 
     def get_thread_ts(self):
         return self.thread_ts
-    
+
     def set_thread_ts(self, thread_ts):
         self.thread_ts = thread_ts
 

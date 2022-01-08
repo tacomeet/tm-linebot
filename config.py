@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 import os
 
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
 load_dotenv()
 
 SLACK_TOKEN = os.getenv('SLACK_TOKEN')
@@ -20,3 +23,13 @@ def get_db_uri():
         db_name = os.environ['DB_NAME']
         uri = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=disable'
     return uri
+
+
+def connect_gspread():
+    jsonf = os.getenv('SPREAD_SHEET_JSONF')
+    key = os.getenv('SPREAD_SHEET_KEY')
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(jsonf, scope)
+    gc = gspread.authorize(credentials)
+    workbook = gc.open_by_key(key)
+    return workbook
