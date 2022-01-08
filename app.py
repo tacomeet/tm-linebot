@@ -25,6 +25,8 @@ import models
 from models import User
 import catcher_rec as cr
 import spreadsheet
+import pandas as pd
+from gspread_dataframe import set_with_dataframe
 
 
 def create_app():
@@ -41,6 +43,8 @@ app = create_app()
 
 with app.app_context():
     db.create_all()
+
+workbook = config.connect_gspread()
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
@@ -68,7 +72,6 @@ def test():
 
 @app.route('/test/gspread', methods=["GET"])
 def test_gspread():
-    workbook = config.connect_gspread()
     worksheet = workbook.worksheet('user')
     df = spreadsheet.get_worksheet_as_dataframe(worksheet)
     print(df)
@@ -158,6 +161,16 @@ def handle_text_message(event):
         user = User.query.get(user_id)
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()
+
+    worksheet = workbook.worksheet('user')
+    df = spreadsheet.get_worksheet_as_dataframe(worksheet)
+    try:
+        df_user = df.loc[user_id]
+    except KeyError:
+        profile = line_bot_api.get_profile(user_id)
+        df_user = pd.Series([profile.display_name, 0, 0], index=['name', 'session_type', 'session_stage'], name=user_id)
+        df = df.append(df_user)
+        set_with_dataframe(worksheet, df.reset_index())
 
     if ss_stage != 0 and text == ms.KEY_END:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
