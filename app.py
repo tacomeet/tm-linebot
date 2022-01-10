@@ -11,13 +11,12 @@ from linebot.exceptions import (
     InvalidSignatureError, LineBotApiError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, FollowEvent, UnfollowEvent,
+    MessageEvent, TextMessage, TextSendMessage, FollowEvent, UnfollowEvent,
 )
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import text_handler as th
-from line.reply_msg import reply_msg
 from models.status_type import StatusType
 import models.status_type as st
 import config
@@ -27,6 +26,7 @@ import slack
 import models
 from models import User
 import catcher_rec as cr
+import spreadsheet
 
 
 def create_app():
@@ -43,6 +43,9 @@ app = create_app()
 
 with app.app_context():
     db.create_all()
+
+workbook = config.connect_gspread()
+worksheet_goal_rate = workbook.worksheet('Goal_Rate')
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
@@ -66,6 +69,14 @@ def test():
     if len(users) == 0:
         return 'no user'
     return Response(json.dumps(users[0].__dict__), mimetype='application/json')
+
+
+@app.route('/test/gspread', methods=["GET"])
+def test_gspread():
+    worksheet = workbook.worksheet('user')
+    df = spreadsheet.get_worksheet_as_dataframe(worksheet)
+    print(df)
+    return Response(df.to_json(), mimetype='application/json')
 
 
 @app.route('/', methods=["POST"])
@@ -154,6 +165,7 @@ def handle_text_message(event):
     ss_type = user.get_session_type()
 
     if ss_stage != 0 and text == ms.KEY_END:
+        spreadsheet.record_goal_rate(user, worksheet_goal_rate, False)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         user.reset()
         cr.reset(user_id)
