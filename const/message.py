@@ -20,17 +20,17 @@ KEY_SELF_REF = '自己分析'
 MSG_SELF_REF = '記事の作成を開始します！\n' \
                '「次」または必要項目を入力して次の質問に行けます！\n' \
                '「終了」と入力してセッション自体を終了します！'
-MSG_SELF_REF_1_1 = '経験'
-MSG_SELF_REF_1_2 = '個性'
-MSG_SELF_REF_1_3 = 'ビジョン'
-MSG_SELF_REF_1_4 = 'ターニングポイント'
+MSG_SELF_REF_1_EXP = '経験'
+MSG_SELF_REF_1_PERS = '個性'
+MSG_SELF_REF_1_VIS = 'ビジョン'
+MSG_SELF_REF_1_TURN = 'ターニングポイント'
 MSG_SELF_REF_1 = TemplateSendMessage(
     alt_text='どの項目について自己分析を行いますか？', template=ButtonsTemplate(
         title='どの項目について自己分析を行いますか？', text='上から順番に行うことをお勧め致します！', actions=[
-            MessageAction(label=MSG_SELF_REF_1_1, text=MSG_SELF_REF_1_1),
-            MessageAction(label=MSG_SELF_REF_1_2, text=MSG_SELF_REF_1_2),
-            MessageAction(label=MSG_SELF_REF_1_3, text=MSG_SELF_REF_1_3),
-            MessageAction(label=MSG_SELF_REF_1_4, text=MSG_SELF_REF_1_4),
+            MessageAction(label=MSG_SELF_REF_1_EXP, text=MSG_SELF_REF_1_EXP),
+            MessageAction(label=MSG_SELF_REF_1_PERS, text=MSG_SELF_REF_1_PERS),
+            MessageAction(label=MSG_SELF_REF_1_VIS, text=MSG_SELF_REF_1_VIS),
+            MessageAction(label=MSG_SELF_REF_1_TURN, text=MSG_SELF_REF_1_TURN),
         ]))
 MSG_SELF_REF_EXP_1 = '趣味や独学で身につけたことなどを書き出してください（5分ほど）\n' \
                      '終わり次第「次」と入力して次の質問に行けます！'
