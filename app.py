@@ -43,6 +43,7 @@ with app.app_context():
     db.create_all()
 
 workbook = config.connect_gspread()
+worksheet_goal_rate = workbook.worksheet('Goal_Rate')
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
@@ -161,9 +162,7 @@ def handle_text_message(event):
     ss_type = user.get_session_type()
 
     if ss_stage != 0 and text == ms.KEY_END:
-        worksheet = workbook.worksheet('Goal_Rate')
-        df = spreadsheet.get_worksheet_as_dataframe(worksheet)
-        spreadsheet.record_goal_rate(user, worksheet, df, False)
+        spreadsheet.record_goal_rate(user, worksheet_goal_rate, False)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         user.reset()
         cr.reset(user_id)
@@ -241,9 +240,7 @@ def handle_catcher_rec(user, event):
     possible_to_match = True
     if user.get_is_matched():
         if text == 'Yes':
-            worksheet = workbook.worksheet('Goal_Rate')
-            df = spreadsheet.get_worksheet_as_dataframe(worksheet)
-            spreadsheet.record_goal_rate(user, worksheet, df, True)
+            spreadsheet.record_goal_rate(user, worksheet_goal_rate, True)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
             cr.reset(user_id)
             user.reset()
@@ -306,9 +303,7 @@ def route_bn_create(user: User):
     bn_dict = ms.type_dict[ss_type]
     if ss_stage in bn_dict:
         if bn_dict[ss_stage] == ms.MSG_END:
-            worksheet = workbook.worksheet('Goal_Rate')
-            df = spreadsheet.get_worksheet_as_dataframe(worksheet)
-            spreadsheet.record_goal_rate(user, worksheet, df, True)
+            spreadsheet.record_goal_rate(user, worksheet_goal_rate, True)
             user.reset()
         return bn_dict[ss_stage]
 

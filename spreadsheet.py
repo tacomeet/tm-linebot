@@ -15,7 +15,8 @@ def get_worksheet_as_dataframe(worksheet):
     return df
 
 
-def record_goal_rate(user: User, worksheet, df, goal):
+def record_goal_rate(user: User, worksheet, goal):
+    df = get_worksheet_as_dataframe(worksheet)
     ss_type = user.get_session_type()
     elapsed_time = datetime.now() - user.get_session_start_timestamp()
 
