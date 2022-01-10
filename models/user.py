@@ -13,6 +13,7 @@ class User(db.Model):
     is_matched = db.Column(db.Boolean())
     last_question_id = db.Column(db.Integer())
     created_at = db.Column(db.DateTime(), default=datetime.now)
+    session_start_timestamp = db.Column(db.DateTime())
 
     def __init__(self, id, name, session_type=None, session_stage=0, thread_ts=None):
         self.id = id
@@ -50,7 +51,7 @@ class User(db.Model):
 
     def get_thread_ts(self):
         return self.thread_ts
-    
+
     def set_thread_ts(self, thread_ts):
         self.thread_ts = thread_ts
 
@@ -63,3 +64,9 @@ class User(db.Model):
     def set_last_question_id(self, question_id):
         # question_id is either tag id or catcher id
         self.last_question_id = question_id
+
+    def set_session_start_timestamp(self):
+        self.session_start_timestamp = datetime.now()
+
+    def get_session_start_timestamp(self):
+        return self.session_start_timestamp
