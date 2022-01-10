@@ -3,7 +3,7 @@ from linebot.models import TextSendMessage
 from models import User
 from models.status_type import StatusType
 import const.message as ms
-from text_handler import self_ref_exp
+from text_handler.self_ref_exp import self_ref_exp
 
 
 def self_ref(line_bot_api, user: User, event):
