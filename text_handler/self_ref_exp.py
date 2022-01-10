@@ -9,11 +9,11 @@ def self_ref_exp(line_bot_api, user, event):
     ss_stage = user.get_session_stage()
     if ss_stage == 3:
         if text == 'Yes':
-            user.set_session_stage(6)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_3))
-        elif text == 'No':
             user.set_session_stage(5)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_4))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_3_YES))
+        elif text == 'No':
+            user.set_session_stage(4)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_3_NO))
     elif text == '次':
         msg = route_next_self_ref_exp(user)
         if msg:
@@ -37,11 +37,9 @@ def route_next_self_ref_exp(user):
         msg = ms.MSG_SELF_REF_EXP_8
     elif ss_stage == 9:
         msg = ms.MSG_SELF_REF_EXP_9
-    elif ss_stage == 10:
-        msg = ms.MSG_SELF_REF_EXP_10
     if msg:
         user.increment_session_stage()
         return msg
-    if ss_stage == 11:
+    if ss_stage == 10:
         user.reset()
         return ms.MSG_END
