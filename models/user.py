@@ -23,6 +23,7 @@ class User(db.Model):
         self.thread_ts = thread_ts
         self.is_matched = False
         self.last_question_id = None
+        self.session_start_timestamp = None
 
     def reset(self):
         self.session_type = None
