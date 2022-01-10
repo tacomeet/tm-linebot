@@ -163,7 +163,7 @@ def handle_text_message(event):
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg_to_thread(profile.display_name, text, user.get_thread_ts())
     elif ss_type == StatusType.SELF_REF:
-        handle_route_self_ref(user, event)
+        th.self_ref(line_bot_api, user, event)
     elif ss_type == StatusType.SELF_REF_EXP:
         th.self_ref_exp(line_bot_api, user, event)
     elif text == '次':
@@ -190,27 +190,6 @@ def handle_route_bn_create(user, event):
     elif text == ms.MSG_BN_CREATE_3_5:
         user.set_session_type(StatusType.BN_CREATE_TRACK5)
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_next_bn_create(user)))
-
-
-def handle_route_self_ref(user: User, event):
-    text = event.message.text
-    if text == ms.MSG_SELF_REF_1_EXP:
-        user.set_session_type(StatusType.SELF_REF_EXP)
-        user.set_session_stage(2)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_1))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.MSG_SELF_REF_EXP_1_EX))
-    elif text == ms.MSG_SELF_REF_1_PERS:
-        user.set_session_type(StatusType.SELF_REF_PERS)
-        user.set_session_stage(2)
-        pass
-    elif text == ms.MSG_SELF_REF_1_VIS:
-        user.set_session_type(StatusType.SELF_REF_VIS)
-        user.set_session_stage(2)
-        pass
-    elif text == ms.MSG_SELF_REF_1_TURN:
-        user.set_session_type(StatusType.SELF_REF_TURN)
-        user.set_session_stage(2)
-        pass
 
 
 def route_next(user: User):
