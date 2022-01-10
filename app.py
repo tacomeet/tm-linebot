@@ -25,8 +25,6 @@ import models
 from models import User
 import catcher_rec as cr
 import spreadsheet
-import pandas as pd
-from gspread_dataframe import set_with_dataframe
 
 
 def create_app():
@@ -162,17 +160,10 @@ def handle_text_message(event):
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()
 
-    worksheet = workbook.worksheet('user')
-    df = spreadsheet.get_worksheet_as_dataframe(worksheet)
-    try:
-        df_user = df.loc[user_id]
-    except KeyError:
-        profile = line_bot_api.get_profile(user_id)
-        df_user = pd.Series([profile.display_name, 0, 0], index=['name', 'session_type', 'session_stage'], name=user_id)
-        df = df.append(df_user)
-        set_with_dataframe(worksheet, df.reset_index())
-
     if ss_stage != 0 and text == ms.KEY_END:
+        worksheet = workbook.worksheet('Goal_Rate')
+        df = spreadsheet.get_worksheet_as_dataframe(worksheet)
+        spreadsheet.record_goal_rate(user, worksheet, df, False)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_END))
         user.reset()
         cr.reset(user_id)
@@ -210,6 +201,7 @@ def handle_stage0(user, event):
         slack.start_bn_creation(user.get_name())
         user.set_session_stage(2)
         user.set_session_type(StatusType.BN_CREATE)
+        user.set_session_start_timestamp()
     elif text == ms.KEY_CATCHER:
         # execute cron job
         # schedule.run_pending()
@@ -224,6 +216,7 @@ def handle_stage0(user, event):
         tag_id, question = cr.get_question(user_id)
         user.set_last_question_id(tag_id)
         user.set_is_matched(False)
+        user.set_session_start_timestamp()
 
         msg.alt_text = question
         msg.template.text = question
@@ -248,6 +241,9 @@ def handle_catcher_rec(user, event):
     possible_to_match = True
     if user.get_is_matched():
         if text == 'Yes':
+            worksheet = workbook.worksheet('Goal_Rate')
+            df = spreadsheet.get_worksheet_as_dataframe(worksheet)
+            spreadsheet.record_goal_rate(user, worksheet, df, True)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_CATCHER_END))
             cr.reset(user_id)
             user.reset()
@@ -310,6 +306,9 @@ def route_bn_create(user: User):
     bn_dict = ms.type_dict[ss_type]
     if ss_stage in bn_dict:
         if bn_dict[ss_stage] == ms.MSG_END:
+            worksheet = workbook.worksheet('Goal_Rate')
+            df = spreadsheet.get_worksheet_as_dataframe(worksheet)
+            spreadsheet.record_goal_rate(user, worksheet, df, True)
             user.reset()
         return bn_dict[ss_stage]
 
