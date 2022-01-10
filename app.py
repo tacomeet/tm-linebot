@@ -287,20 +287,20 @@ def send_rec(user: User, event, catcher_id):
 
 def handle_route_self_ref(user: User, event):
     text = event.message.text
-    if text == ms.MSG_SELF_REF_1_1:
+    if text == ms.MSG_SELF_REF_1_EXP:
         user.set_session_type(StatusType.SELF_REF_EXP)
         user.set_session_stage(2)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_1))
         line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.MSG_SELF_REF_EXP_1_EX))
-    elif text == ms.MSG_SELF_REF_1_2:
+    elif text == ms.MSG_SELF_REF_1_PERS:
         user.set_session_type(StatusType.SELF_REF_PERS)
         user.set_session_stage(2)
         pass
-    elif text == ms.MSG_SELF_REF_1_3:
+    elif text == ms.MSG_SELF_REF_1_VIS:
         user.set_session_type(StatusType.SELF_REF_VIS)
         user.set_session_stage(2)
         pass
-    elif text == ms.MSG_SELF_REF_1_4:
+    elif text == ms.MSG_SELF_REF_1_TURN:
         user.set_session_type(StatusType.SELF_REF_TURN)
         user.set_session_stage(2)
         pass
