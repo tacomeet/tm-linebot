@@ -26,10 +26,21 @@ def get_db_uri():
 
 
 def connect_gspread():
-    jsonf = os.getenv('SPREAD_SHEET_JSONF')
     key = os.getenv('SPREAD_SHEET_KEY')
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(jsonf, scope)
+    cre_dict = {
+        "type": os.getenv('TYPE'),
+        "project_id": os.getenv('PROJECT_ID'),
+        "private_key_id": os.getenv('PRIVATE_KEY_ID'),
+        "private_key": os.getenv('PRIVATE_KEY'),
+        "client_email": os.getenv('CLIENT_EMAIL'),
+        "client_id": os.getenv('CLIENT_ID'),
+        "auth_uri": os.getenv('AUTH_URI'),
+        "token_uri": os.getenv('TOKEN_URI'),
+        "auth_provider_x509_cert_url": os.getenv('AUTH_PROVIDER_CERT_URL'),
+        "client_x509_cert_url": os.getenv('CLIENT_CERT_URL')
+    }
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(cre_dict, scope)
     gc = gspread.authorize(credentials)
     workbook = gc.open_by_key(key)
     return workbook
