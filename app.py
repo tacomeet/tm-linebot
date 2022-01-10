@@ -19,6 +19,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import text_handler as th
 from line.reply_msg import reply_msg
 from models.status_type import StatusType
+import models.status_type as st
 import config
 from database.database import init_db, db
 import const.message as ms
@@ -148,6 +149,7 @@ def handle_text_message(event):
         db.session.add(user)
         db.session.commit()
         user = User.query.get(user_id)
+
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()
 
@@ -162,62 +164,11 @@ def handle_text_message(event):
     elif ss_type == StatusType.CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg_to_thread(profile.display_name, text, user.get_thread_ts())
-    elif ss_type == StatusType.SELF_REF:
+    elif st.is_included(StatusType.SELF_REF, ss_type):
         th.self_ref(line_bot_api, user, event)
-    elif ss_type == StatusType.SELF_REF_EXP:
-        th.self_ref_exp(line_bot_api, user, event)
-    elif text == '次':
-        handle_next(user, event)
-    elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
-        handle_route_bn_create(user, event)
+    elif st.is_included(StatusType.BN_CREATE, ss_type):
+        th.bn_create(line_bot_api, user, event)
     db.session.commit()
-
-
-def handle_next(user, event):
-    msg = route_next(user)
-    reply_msg(line_bot_api, event, msg)
-
-
-def handle_route_bn_create(user, event):
-    text = event.message.text
-    user.set_session_stage(1)
-    if text == ms.MSG_BN_CREATE_3_1:
-        user.set_session_type(StatusType.BN_CREATE_TRACK1)
-    elif text == ms.MSG_BN_CREATE_3_2:
-        user.set_session_type(StatusType.BN_CREATE_TRACK2)
-    elif text == ms.MSG_BN_CREATE_3_3:
-        user.set_session_type(StatusType.BN_CREATE_TRACK3)
-    elif text == ms.MSG_BN_CREATE_3_5:
-        user.set_session_type(StatusType.BN_CREATE_TRACK5)
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_next_bn_create(user)))
-
-
-def route_next(user: User):
-    ss_stage = user.get_session_stage()
-    ss_type = user.get_session_type()
-
-    if ss_type == StatusType.BN_CREATE:
-        user.increment_session_stage()
-        if ss_stage == 2:
-            return ms.MSG_BN_CREATE_2
-        elif ss_stage == 3:
-            return ms.MSG_BN_CREATE_3
-    elif ss_type in (
-            StatusType.BN_CREATE_TRACK1, StatusType.BN_CREATE_TRACK2, StatusType.BN_CREATE_TRACK3,
-            StatusType.BN_CREATE_TRACK5):
-        return route_next_bn_create(user)
-
-
-def route_next_bn_create(user: User):
-    ss_stage = user.get_session_stage()
-    ss_type = user.get_session_type()
-    user.increment_session_stage()
-
-    bn_dict = ms.type_dict[ss_type]
-    if ss_stage in bn_dict:
-        if bn_dict[ss_stage] == ms.MSG_END:
-            user.reset()
-        return bn_dict[ss_stage]
 
 
 def reply_contact(event):

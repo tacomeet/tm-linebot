@@ -7,8 +7,7 @@ from models.status_type import StatusType
 # default commands
 KEY_END = '終了'
 MSG_END = 'ありがとうございました！またのご利用をお待ちしております！'
-KEY_SKIP = 'スキップ'
-MSG_SKIP = 'スキップします！'
+KEY_NEXT = '次'
 
 KEY_CONTACT = 'お問い合わせ'
 MSG_CONTACT_DEFAULT = 'お問い合わせありがとうございます。\n' \

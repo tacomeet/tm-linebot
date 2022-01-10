@@ -26,3 +26,7 @@ class StatusType(IntFlag):
 
     CATCH_REC = auto()
     CONTACT = auto()
+
+
+def is_included(parent: StatusType, child: StatusType) -> bool:
+    return parent & child == parent
