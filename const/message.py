@@ -16,8 +16,48 @@ MSG_CONTACT_DEFAULT = 'お問い合わせありがとうございます。\n' \
                       '「終了」と入力してお問い合わせが終わります！'
 
 # Self Reflection
-KEY_SELF_REFLECTION = '自己分析'
-MSG_SELF_REFLECTION = '今後対応致します。少々お待ちください！'
+KEY_SELF_REF = '自己分析'
+MSG_SELF_REF = '記事の作成を開始します！\n' \
+               '「次」または必要項目を入力して次の質問に行けます！\n' \
+               '「終了」と入力してセッション自体を終了します！'
+MSG_SELF_REF_1_EXP = '経験'
+MSG_SELF_REF_1_PERS = '個性'
+MSG_SELF_REF_1_VIS = 'ビジョン'
+MSG_SELF_REF_1_TURN = 'ターニングポイント'
+MSG_SELF_REF_1 = TemplateSendMessage(
+    alt_text='どの項目について自己分析を行いますか？', template=ButtonsTemplate(
+        title='どの項目について自己分析を行いますか？', text='上から順番に行うことをお勧め致します！', actions=[
+            MessageAction(label=MSG_SELF_REF_1_EXP, text=MSG_SELF_REF_1_EXP),
+            MessageAction(label=MSG_SELF_REF_1_PERS, text=MSG_SELF_REF_1_PERS),
+            MessageAction(label=MSG_SELF_REF_1_VIS, text=MSG_SELF_REF_1_VIS),
+            MessageAction(label=MSG_SELF_REF_1_TURN, text=MSG_SELF_REF_1_TURN),
+        ]))
+MSG_SELF_REF_EXP_1 = '趣味や独学で身につけたことなどを書き出してください（5分ほど）\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_1_EX = '例：小さい頃アメリカに住んでおり、英語が話せる'
+MSG_SELF_REF_EXP_2 = TemplateSendMessage(
+    template=ConfirmTemplate(
+        actions=[
+            MessageAction(label='Yes', text='Yes'),
+            MessageAction(label='No', text='No'),
+        ], text='自分の経験を十分に書けましたか？'),
+    alt_text='自分の経験を十分に書けましたか？')
+MSG_SELF_REF_EXP_3_YES = '一番大事にしている経験はどれですか？ その経験に対して以降の質問に答えて頂きます\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_3_NO = '人より少し得意だと思うことを書き出してください（5分ほど）\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_4 = '一番楽しんでいるものはどれですか？ その経験に対して以降の質問に答えて頂きます\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_5 = 'それのどういうところを楽しんでいますか？\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_6 = 'それを始めたきっかけは何ですか？\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_7 = 'やっている時はどう感じていますか？\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_8 = 'この経験から何か学んだことはありますか？\n' \
+                     '終わり次第「次」と入力して次の質問に行けます！'
+MSG_SELF_REF_EXP_9 = 'これからも続けていきたいですか？その理由は何ですか？\n' \
+                      '終わり次第「次」と入力して次の質問に行けます！'
 
 # BN Creation
 KEY_BN_CREATE = '記事作成'
@@ -36,7 +76,7 @@ MSG_BN_CREATE_3_4 = '疑問を感じた'
 MSG_BN_CREATE_3_5 = '自分とは異なる考え方・価値観だった'
 MSG_BN_CREATE_3 = TemplateSendMessage(
     alt_text='印象に残っている理由はなんですか？', template=ButtonsTemplate(
-        title='印象に残っている理由はなんですか？', text='...', actions=[
+        title='印象に残っている理由はなんですか？', text='.', actions=[
             MessageAction(label=MSG_BN_CREATE_3_1, text=MSG_BN_CREATE_3_1),
             MessageAction(label=MSG_BN_CREATE_3_2, text=MSG_BN_CREATE_3_2),
             MessageAction(label=MSG_BN_CREATE_3_3, text=MSG_BN_CREATE_3_3),
@@ -201,7 +241,7 @@ MSG_DEFAULT = TemplateSendMessage(
     alt_text='Buttons alt text', template=ButtonsTemplate(
         title="メッセージありがとうございます！", text="以下の4つのボタンからしたいことを選択してください",
         actions=[
-            MessageAction(label='自己分析', text=KEY_SELF_REFLECTION),
+            MessageAction(label='自己分析', text=KEY_SELF_REF),
             MessageAction(label='記事作成', text=KEY_BN_CREATE),
             MessageAction(label='ロールモデルマッチング', text=KEY_CATCHER),
             MessageAction(label='運営にお問い合わせ', text=KEY_CONTACT),

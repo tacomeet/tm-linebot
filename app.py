@@ -16,6 +16,8 @@ from linebot.models import (
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import text_handler as th
+from line.reply_msg import reply_msg
 from models.status_type import StatusType
 import config
 from database.database import init_db, db
@@ -173,6 +175,10 @@ def handle_text_message(event):
     elif ss_type == StatusType.CONTACT:
         profile = line_bot_api.get_profile(user_id)
         slack.send_msg_to_thread(profile.display_name, text, user.get_thread_ts())
+    elif ss_type == StatusType.SELF_REF:
+        handle_route_self_ref(user, event)
+    elif ss_type == StatusType.SELF_REF_EXP:
+        th.self_ref_exp(line_bot_api, user, event)
     elif text == '次':
         handle_next(user, event)
     elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
@@ -182,18 +188,18 @@ def handle_text_message(event):
 
 def handle_next(user, event):
     msg = route_next(user)
-    if isinstance(msg, str):
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-    else:
-        line_bot_api.reply_message(event.reply_token, msg)
+    reply_msg(line_bot_api, event, msg)
 
 
 def handle_stage0(user, event):
     text = event.message.text
     user_id = event.source.user_id
-    if text == ms.KEY_SELF_REFLECTION:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REFLECTION))
+    if text == ms.KEY_SELF_REF:
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF))
+        line_bot_api.push_message(user_id, ms.MSG_SELF_REF_1)
         slack.start_self_rec(user.get_name())
+        user.set_session_stage(2)
+        user.set_session_type(StatusType.SELF_REF)
     elif text == ms.KEY_BN_CREATE:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_BN_CREATE))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.MSG_BN_CREATE_1))
@@ -281,7 +287,7 @@ def handle_route_bn_create(user, event):
         user.set_session_type(StatusType.BN_CREATE_TRACK3)
     elif text == ms.MSG_BN_CREATE_3_5:
         user.set_session_type(StatusType.BN_CREATE_TRACK5)
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_bn_create(user)))
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=route_next_bn_create(user)))
 
 
 def send_rec(user: User, event, catcher_id):
@@ -295,22 +301,31 @@ def send_rec(user: User, event, catcher_id):
     line_bot_api.push_message(user.id, msg)
 
 
-def route_bn_create(user: User):
-    ss_stage = user.get_session_stage()
-    ss_type = user.get_session_type()
-    user.increment_session_stage()
-
-    bn_dict = ms.type_dict[ss_type]
-    if ss_stage in bn_dict:
-        if bn_dict[ss_stage] == ms.MSG_END:
-            spreadsheet.record_goal_rate(user, worksheet_goal_rate, True)
-            user.reset()
-        return bn_dict[ss_stage]
+def handle_route_self_ref(user: User, event):
+    text = event.message.text
+    if text == ms.MSG_SELF_REF_1_EXP:
+        user.set_session_type(StatusType.SELF_REF_EXP)
+        user.set_session_stage(2)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_1))
+        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.MSG_SELF_REF_EXP_1_EX))
+    elif text == ms.MSG_SELF_REF_1_PERS:
+        user.set_session_type(StatusType.SELF_REF_PERS)
+        user.set_session_stage(2)
+        pass
+    elif text == ms.MSG_SELF_REF_1_VIS:
+        user.set_session_type(StatusType.SELF_REF_VIS)
+        user.set_session_stage(2)
+        pass
+    elif text == ms.MSG_SELF_REF_1_TURN:
+        user.set_session_type(StatusType.SELF_REF_TURN)
+        user.set_session_stage(2)
+        pass
 
 
 def route_next(user: User):
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()
+
     if ss_type == StatusType.BN_CREATE:
         user.increment_session_stage()
         if ss_stage == 2:
@@ -320,7 +335,19 @@ def route_next(user: User):
     elif ss_type in (
             StatusType.BN_CREATE_TRACK1, StatusType.BN_CREATE_TRACK2, StatusType.BN_CREATE_TRACK3,
             StatusType.BN_CREATE_TRACK5):
-        return route_bn_create(user)
+        return route_next_bn_create(user)
+
+
+def route_next_bn_create(user: User):
+    ss_stage = user.get_session_stage()
+    ss_type = user.get_session_type()
+    user.increment_session_stage()
+
+    bn_dict = ms.type_dict[ss_type]
+    if ss_stage in bn_dict:
+        if bn_dict[ss_stage] == ms.MSG_END:
+            user.reset()
+        return bn_dict[ss_stage]
 
 
 def reply_contact(event):
