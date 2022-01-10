@@ -16,6 +16,8 @@ from linebot.models import (
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import text_handler as th
+from line.reply_msg import reply_msg
 from models.status_type import StatusType
 import config
 from database.database import init_db, db
@@ -163,7 +165,7 @@ def handle_text_message(event):
     elif ss_type == StatusType.SELF_REF:
         handle_route_self_ref(user, event)
     elif ss_type == StatusType.SELF_REF_EXP:
-        handle_self_ref_exp(user, event)
+        th.self_ref_exp(line_bot_api, user, event)
     elif text == '次':
         handle_next(user, event)
     elif text in (ms.MSG_BN_CREATE_3_1, ms.MSG_BN_CREATE_3_2, ms.MSG_BN_CREATE_3_3, ms.MSG_BN_CREATE_3_5):
@@ -171,59 +173,9 @@ def handle_text_message(event):
     db.session.commit()
 
 
-def handle_self_ref_exp(user, event):
-    text = event.message.text
-    ss_stage = user.get_session_stage()
-    if ss_stage == 3:
-        if text == 'Yes':
-            user.set_session_stage(6)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_3))
-        elif text == 'No':
-            user.set_session_stage(5)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.MSG_SELF_REF_EXP_4))
-    elif text == '次':
-        msg = route_next_self_ref_exp(user)
-        if msg:
-            reply_msg(event, msg)
-
-
-def route_next_self_ref_exp(user):
-    ss_stage = user.get_session_stage()
-    msg = None
-    if ss_stage == 2:
-        msg = ms.MSG_SELF_REF_EXP_2
-    elif ss_stage == 4:
-        msg = ms.MSG_SELF_REF_EXP_4
-    elif ss_stage == 5:
-        msg = ms.MSG_SELF_REF_EXP_5
-    elif ss_stage == 6:
-        msg = ms.MSG_SELF_REF_EXP_6
-    elif ss_stage == 7:
-        msg = ms.MSG_SELF_REF_EXP_7
-    elif ss_stage == 8:
-        msg = ms.MSG_SELF_REF_EXP_8
-    elif ss_stage == 9:
-        msg = ms.MSG_SELF_REF_EXP_9
-    elif ss_stage == 10:
-        msg = ms.MSG_SELF_REF_EXP_10
-    if msg:
-        user.increment_session_stage()
-        return msg
-    if ss_stage == 11:
-        user.reset()
-        return ms.MSG_END
-
-
-def reply_msg(event, msg):
-    if isinstance(msg, str):
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=msg))
-    else:
-        line_bot_api.reply_message(event.reply_token, msg)
-
-
 def handle_next(user, event):
     msg = route_next(user)
-    reply_msg(event, msg)
+    reply_msg(line_bot_api, event, msg)
 
 
 def handle_stage0(user, event):
