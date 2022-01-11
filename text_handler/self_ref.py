@@ -4,6 +4,7 @@ from models import User
 from models.status_type import StatusType
 import message as ms
 from text_handler.self_ref_exp import self_ref_exp
+from text_handler.self_ref_pers import self_ref_pers
 
 
 def self_ref(line_bot_api, user: User, event):
@@ -12,7 +13,7 @@ def self_ref(line_bot_api, user: User, event):
     if ss_type == StatusType.SELF_REF_EXP:
         self_ref_exp(line_bot_api, user, event)
     elif ss_type == StatusType.SELF_REF_PERS:
-        pass
+        self_ref_pers(line_bot_api, user, event)
     elif ss_type == StatusType.SELF_REF_VIS:
         pass
     elif ss_type == StatusType.SELF_REF_TURN:
@@ -31,7 +32,8 @@ def _self_ref(line_bot_api, user: User, event):
     elif text == ms.self_ref.M_1_PERS:
         user.set_session_type(StatusType.SELF_REF_PERS)
         user.set_session_stage(2)
-        pass
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_1))
+        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.PERS_1_EX))
     elif text == ms.self_ref.M_1_VIS:
         user.set_session_type(StatusType.SELF_REF_VIS)
         user.set_session_stage(2)
