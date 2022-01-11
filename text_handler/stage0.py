@@ -14,6 +14,7 @@ from models.status_type import StatusType
 def stage0(line_bot_api, user, event):
     text = event.message.text
     user_id = event.source.user_id
+    user.set_session_start_timestamp()
     if text == ms.self_ref.KEY:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.START))
         line_bot_api.push_message(user_id, ms.self_ref.M_1)
