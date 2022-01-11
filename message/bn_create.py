@@ -1,8 +1,8 @@
 from linebot.models import TemplateSendMessage, ButtonsTemplate, MessageAction
-import message as ms
 from models.status_type import StatusType
+from . import default
 
-KEY = '記事作成'
+KEY = default.KEY_BN_CREATE
 START = '記事の作成を開始します！\n' \
         '「次」と入力して次の質問に行けます！\n' \
         '「終了」と入力してセッション自体を終了します！'
@@ -41,10 +41,10 @@ T3_2 = 'そんな気づきや学びを踏まえて、どのように今後に活
 T5_1 = '自分の考え方とどのように違いましたか？'
 T5_2 = '違う考え方・価値観と出会い、考え方に変化はありましたか？'
 
-bn_dict_1 = {1: T1_1, 2: T1_2, 3: T1_3, 4: ms.default.END}
-bn_dict_2 = {1: T2_1, 2: T2_2, 3: T2_3, 4: ms.default.END}
-bn_dict_3 = {1: T3_1, 2: T3_2, 3: ms.default.END}
-bn_dict_4 = {1: T5_1, 2: T5_2, 3: ms.default.END}
+bn_dict_1 = {1: T1_1, 2: T1_2, 3: T1_3, 4: default.END}
+bn_dict_2 = {1: T2_1, 2: T2_2, 3: T2_3, 4: default.END}
+bn_dict_3 = {1: T3_1, 2: T3_2, 3: default.END}
+bn_dict_4 = {1: T5_1, 2: T5_2, 3: default.END}
 
 type_dict = {StatusType.BN_CREATE_TRACK1: bn_dict_1,
              StatusType.BN_CREATE_TRACK2: bn_dict_2,

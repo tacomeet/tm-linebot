@@ -1,7 +1,8 @@
 from linebot.models import TemplateSendMessage, MessageAction, ButtonsTemplate, ConfirmTemplate
+from . import default
 
-KEY = '自己分析'
-START = '記事の作成を開始します！\n' \
+KEY = default.KEY_SELF_REF
+START = '自己分析を開始します！\n' \
         '「次」または必要項目を入力して次の質問に行けます！\n' \
         '「終了」と入力してセッション自体を終了します！'
 M_1_EXP = '経験'

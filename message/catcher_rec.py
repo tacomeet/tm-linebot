@@ -1,8 +1,9 @@
 import requests
 from linebot.models import TemplateSendMessage, ConfirmTemplate, MessageAction, BubbleContainer, ImageComponent, \
     URIAction, BoxComponent, TextComponent, SeparatorComponent, ButtonComponent
+from . import default
 
-KEY = 'ロールモデル'
+KEY = default.KEY_CATCHER_REC
 START = 'ロールモデル マッチングを開始します！\n' \
         '「終了」と入力してセッション自体を終了します！'
 CONFIRM = TemplateSendMessage(

@@ -21,7 +21,7 @@ from models.status_type import StatusType
 import models.status_type as st
 import config
 from database.database import init_db, db
-import message.default
+import message as ms
 import slack
 import models
 from models import User
@@ -120,7 +120,7 @@ def handle_follow(event):
     profile = line_bot_api.get_profile(user_id)
 
     # send welcome message on LINE
-    msg = message.default.MENU
+    msg = ms.default.MENU
     msg.template.title = profile.display_name + 'さん、はじめまして！\n' \
                                                 '友達追加ありがとうございます！'
     msg.template.title = 'メッセージありがとうございます！'
@@ -164,9 +164,9 @@ def handle_text_message(event):
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()
 
-    if ss_stage != 0 and text == message.default.KEY_END:
+    if ss_stage != 0 and text == ms.default.KEY_END:
         spreadsheet.record_goal_rate(user, worksheet_goal_rate, False)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=message.default.END))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.default.END))
         user.reset()
         cr.reset(user_id)
     elif ss_stage == 0:

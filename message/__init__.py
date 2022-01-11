@@ -1,3 +1,5 @@
-__all__ = [
-    'default', 'contact', 'self_ref', 'bn_create', 'catcher_rec'
-]
+from . import default
+from . import contact
+from . import self_ref
+from . import bn_create
+from . import catcher_rec
