@@ -4,17 +4,17 @@ KEY = '自己分析'
 START = '記事の作成を開始します！\n' \
         '「次」または必要項目を入力して次の質問に行けます！\n' \
         '「終了」と入力してセッション自体を終了します！'
-_1_EXP = '経験'
-_1_PERS = '個性'
-_1_VIS = 'ビジョン'
-_1_TURN = 'ターニングポイント'
-_1 = TemplateSendMessage(
+M_1_EXP = '経験'
+M_1_PERS = '個性'
+M_1_VIS = 'ビジョン'
+M_1_TURN = 'ターニングポイント'
+M_1 = TemplateSendMessage(
     alt_text='どの項目について自己分析を行いますか？', template=ButtonsTemplate(
         title='どの項目について自己分析を行いますか？', text='上から順番に行うことをお勧め致します！', actions=[
-            MessageAction(label=_1_EXP, text=_1_EXP),
-            MessageAction(label=_1_PERS, text=_1_PERS),
-            MessageAction(label=_1_VIS, text=_1_VIS),
-            MessageAction(label=_1_TURN, text=_1_TURN),
+            MessageAction(label=M_1_EXP, text=M_1_EXP),
+            MessageAction(label=M_1_PERS, text=M_1_PERS),
+            MessageAction(label=M_1_VIS, text=M_1_VIS),
+            MessageAction(label=M_1_TURN, text=M_1_TURN),
         ]))
 EXP_1 = '趣味や独学で身につけたことなどを書き出してください（5分ほど）\n' \
         '終わり次第「次」と入力して次の質問に行けます！'
