@@ -1,5 +1,5 @@
 from linebot.models import TextSendMessage, FlexSendMessage
-import message as ms
+import message.catcher_rec
 import catcher_rec as cr
 from models import User
 
@@ -14,7 +14,7 @@ def catcher_rec(line_bot_api, user, event):
     possible_to_match = True
     if user.get_is_matched():
         if text == 'Yes':
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.catcher_rec.END))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=message.catcher_rec.END))
             cr.reset(user_id)
             user.reset()
             return
@@ -31,13 +31,13 @@ def catcher_rec(line_bot_api, user, event):
             return
     tag_id, question = cr.get_question(user_id)
     if not tag_id:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.catcher_rec.SORRY))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=message.catcher_rec.SORRY))
         cr.reset(user_id)
         user.reset()
     else:
         user.last_question_id = tag_id
         user.set_is_matched(False)
-        msg = ms.catcher_rec.CONFIRM
+        msg = message.catcher_rec.CONFIRM
         msg.alt_text = question
         msg.template.text = question
         line_bot_api.reply_message(event.reply_token, msg)
@@ -46,9 +46,9 @@ def catcher_rec(line_bot_api, user, event):
 def send_rec(line_bot_api, user: User, event, catcher_id):
     user.set_last_question_id(catcher_id)
     user.set_is_matched(True)
-    msg = ms.catcher_rec.CONFIRM
-    msg.alt_text = ms.catcher_rec.CONFIRM_TEXT
-    msg.template.text = ms.catcher_rec.CONFIRM_TEXT
+    msg = message.catcher_rec.CONFIRM
+    msg.alt_text = message.catcher_rec.CONFIRM_TEXT
+    msg.template.text = message.catcher_rec.CONFIRM_TEXT
     line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text="catcher profile",
-                                                                  contents=ms.catcher_rec.get_catcher(catcher_id)))
+                                                                  contents=message.catcher_rec.get_catcher(catcher_id)))
     line_bot_api.push_message(user.id, msg)
