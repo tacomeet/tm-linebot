@@ -14,7 +14,7 @@ def self_ref_pers(line_bot_api, user, event):
         elif text == 'No':
             user.set_session_stage(4)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_3_NO))
-            line_bot_api.push_message(user.get_user_id(), TextSendMessage(text=ms.self_ref.PERS_3_NO_EX))
+            line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.PERS_3_NO_EX))
     elif ss_stage == 7:
         if text == 'Yes':
             user.set_session_stage(8)
