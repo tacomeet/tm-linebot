@@ -1,6 +1,6 @@
 from gspread_dataframe import set_with_dataframe
 import pandas as pd
-from models.status_type import StatusType
+from models.status_type import StatusType, is_included
 from datetime import datetime
 
 from models.user import User
@@ -22,10 +22,12 @@ def record_goal_rate(user: User, worksheet, goal):
 
     if ss_type == StatusType.CATCH_REC:
         rec_type = 'ロールモデルマッチング'
-    elif ss_type in (
-            StatusType.BN_CREATE,
-            StatusType.BN_CREATE_TRACK1, StatusType.BN_CREATE_TRACK2, StatusType.BN_CREATE_TRACK3, StatusType.BN_CREATE_TRACK5):
+    elif is_included(StatusType.BN_CREATE, ss_type):
         rec_type = '記事作成'
+    elif is_included(StatusType.SELF_REF, ss_type):
+        rec_type = '自己分析'
+    else:
+        return
 
     df_goal_rate = pd.Series([rec_type, goal, elapsed_time.total_seconds()], index=['type', 'goal', 'elapsed_time [s]'])
     df = df.append(df_goal_rate, ignore_index=True)
