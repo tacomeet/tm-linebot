@@ -33,7 +33,7 @@ def _bn_create(line_bot_api, user, event):
             user.set_session_type(StatusType.BN_CREATE_TRACK3)
         elif text == ms.bn_create.M_3_5:
             user.set_session_type(StatusType.BN_CREATE_TRACK5)
-        msg = get_bn_create_msg(user)
+        msg = _get_msg(user)
         line.reply_msg(line_bot_api, event, msg)
 
 
@@ -41,11 +41,11 @@ def bn_create_track(line_bot_api, user, event):
     text = event.message.text
     if text == ms.default.KEY_NEXT:
         user.increment_session_stage()
-        msg = get_bn_create_msg(user)
+        msg = _get_msg(user)
         line.reply_msg(line_bot_api, event, msg)
 
 
-def get_bn_create_msg(user: User):
+def _get_msg(user: User):
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()
 

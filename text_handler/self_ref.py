@@ -41,6 +41,7 @@ def _self_ref(line_bot_api, user: User, event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.VIS_1))
         line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.VIS_1_EX_1))
         line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.VIS_1_EX_2))
+        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
     elif text == ms.self_ref.M_1_TURN:
         user.set_session_type(StatusType.SELF_REF_TURN)
         user.set_session_stage(2)

@@ -15,12 +15,12 @@ def self_ref_exp(line_bot_api, user, event):
             user.set_session_stage(4)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.EXP_3_NO))
     elif text == '次':
-        msg = route_next_self_ref_exp(user)
+        msg = _route_next(user)
         if msg:
             line.reply_msg(line_bot_api, event, msg)
 
 
-def route_next_self_ref_exp(user):
+def _route_next(user):
     ss_stage = user.get_session_stage()
     msg = None
     if ss_stage == 2:

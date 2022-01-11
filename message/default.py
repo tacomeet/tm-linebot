@@ -17,3 +17,5 @@ MENU = TemplateSendMessage(
             MessageAction(label='ロールモデルマッチング', text=KEY_CATCHER_REC),
             MessageAction(label='運営にお問い合わせ', text=KEY_CONTACT),
         ]))
+
+ASK_FOR_NEXT = '終わり次第「次」と入力して次の質問に行けます！'
