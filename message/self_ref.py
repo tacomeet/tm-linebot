@@ -17,6 +17,8 @@ M_1 = TemplateSendMessage(
             MessageAction(label=M_1_VIS, text=M_1_VIS),
             MessageAction(label=M_1_TURN, text=M_1_TURN),
         ]))
+
+# Experience
 EXP_1 = '趣味や独学で身につけたことなどを書き出してください（5分ほど）\n' \
         '終わり次第「次」と入力して次の質問に行けます！'
 EXP_1_EX = '例：小さい頃アメリカに住んでおり、英語が話せる'
@@ -43,3 +45,34 @@ EXP_8 = 'この経験から何か学んだことはありますか？\n' \
         '終わり次第「次」と入力して次の質問に行けます！'
 EXP_9 = 'これからも続けていきたいですか？その理由は何ですか？\n' \
         '終わり次第「次」と入力して次の質問に行けます！'
+
+# Personality
+PERS_1 = 'あなたの得意なこと（他の人より苦労なくできること）や苦手なことを書き出してください！\n' \
+         '終わり次第「次」と入力して次の質問に行けます！'
+PERS_1_EX = '例：細かいところに気が付く'
+PERS_2 = TemplateSendMessage(
+    template=ConfirmTemplate(
+        actions=[
+            MessageAction(label='Yes', text='Yes'),
+            MessageAction(label='No', text='No'),
+        ], text='具体的に書けましたか？'),
+    alt_text='具体的に書けましたか？')
+PERS_3_YES = '一番気にしている短所を選んでください\n' \
+             '終わり次第「次」と入力して次の質問に行けます！'
+PERS_3_NO = 'それらの個性を（良い意味でも悪い意味でも）発揮したエピソードを書き出してください！（3分）\n' \
+            '終わり次第「次」と入力して次の質問に行けます！'
+PERS_3_NO_EX = '例：リーダシップがある。サークルの代表をやったり、友達を誘えってイベント・勉強会を開いたりした。'
+PERS_4 = PERS_3_YES
+PERS_5 = 'その短所にも、メリットがあるとしたら、どんなところだと思いますか？\n' \
+         '終わり次第「次」と入力して次の質問に行けます！'
+PERS_6 = TemplateSendMessage(
+    template=ConfirmTemplate(
+        actions=[
+            MessageAction(label='Yes', text='Yes'),
+            MessageAction(label='No', text='No'),
+        ], text='その短所を直したいと思いますか？'),
+    alt_text='その短所を直したいと思いますか？')
+PERS_7_YES = 'その短所を直すために、何ができると思いますか？\n' \
+             '終わり次第「次」と入力して次の質問に行けます！'
+PERS_7_NO = 'その状態を乗り越える方法は何かありますか？\n' \
+            '終わり次第「次」と入力して次の質問に行けます！'
