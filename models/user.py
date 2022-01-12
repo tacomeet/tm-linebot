@@ -9,18 +9,20 @@ class User(db.Model):
     name = db.Column(db.String())
     session_type = db.Column(db.Integer())
     session_stage = db.Column(db.Integer())
-    thread_ts = db.Column(db.String())
+    thread_ts_contact = db.Column(db.String())
+    thread_ts_other = db.Column(db.String())
     is_matched = db.Column(db.Boolean())
     last_question_id = db.Column(db.Integer())
     created_at = db.Column(db.DateTime(), default=datetime.now)
     session_start_timestamp = db.Column(db.DateTime())
 
-    def __init__(self, id, name, session_type=None, session_stage=0, thread_ts=None):
+    def __init__(self, id, name, session_type=None, session_stage=0, thread_ts_contact=None, thread_ts_other=None):
         self.id = id
         self.name = name
         self.session_type = session_type
         self.session_stage = session_stage
-        self.thread_ts = thread_ts
+        self.thread_ts_contact = thread_ts_contact
+        self.thread_ts_other = thread_ts_other
         self.is_matched = False
         self.last_question_id = None
         self.session_start_timestamp = None
@@ -50,11 +52,17 @@ class User(db.Model):
     def increment_session_stage(self):
         self.session_stage += 1
 
-    def get_thread_ts(self):
-        return self.thread_ts
+    def get_thread_ts_contact(self):
+        return self.thread_ts_contact
 
-    def set_thread_ts(self, thread_ts):
-        self.thread_ts = thread_ts
+    def set_thread_ts_contact(self, thread_ts):
+        self.thread_ts_contact = thread_ts
+
+    def get_thread_ts_other(self):
+        return self.thread_ts_other
+
+    def set_thread_ts_other(self, thread_ts):
+        self.thread_ts_other = thread_ts
 
     def get_is_matched(self):
         return self.is_matched

@@ -175,7 +175,7 @@ def handle_text_message(event):
         th.catcher_rec(line_bot_api, user, event)
     elif ss_type == StatusType.CONTACT:
         profile = line_bot_api.get_profile(user_id)
-        slack.send_msg_to_thread(profile.display_name, text, user.get_thread_ts())
+        slack.send_msg_to_thread(profile.display_name, text, user.get_thread_ts_contact())
     elif st.is_included(StatusType.SELF_REF, ss_type):
         th.self_ref(line_bot_api, user, event)
     elif st.is_included(StatusType.BN_CREATE, ss_type):
@@ -186,7 +186,7 @@ def handle_text_message(event):
 def reply_contact(event):
     if 'bot_id' not in event and 'thread_ts' in event:
         thread_ts = event['thread_ts']
-        user = User.query.filter_by(thread_ts=thread_ts).first()
+        user = User.query.filter_by(thread_ts_contact=thread_ts).first()
         user_id = user.get_id()
         msg = event['text']
         line_bot_api.push_message(user_id, TextSendMessage(text=msg))

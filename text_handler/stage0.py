@@ -53,7 +53,7 @@ def stage0(line_bot_api, user, event):
         user.set_session_stage(1)
         user.set_session_type(StatusType.CONTACT)
         res = slack.start_contact(user.get_name())
-        user.set_thread_ts(res['message']['ts'])
+        user.set_thread_ts_contact(res['message']['ts'])
         db.session.add(user)
     else:
         line_bot_api.reply_message(event.reply_token, ms.default.MENU)
