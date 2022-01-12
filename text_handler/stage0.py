@@ -18,13 +18,15 @@ def stage0(line_bot_api, user, event):
     if text == ms.self_ref.KEY:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.START))
         line_bot_api.push_message(user_id, ms.self_ref.M_1)
-        slack.start_self_rec(user.get_name())
+        res = slack.start_self_rec(user.get_name())
+        user.set_thread_ts_other(res['message']['ts'])
         user.set_session_stage(2)
         user.set_session_type(StatusType.SELF_REF)
     elif text == ms.bn_create.KEY:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.bn_create.START))
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.bn_create.M_1))
-        slack.start_bn_creation(user.get_name())
+        res = slack.start_bn_creation(user.get_name())
+        user.set_thread_ts_other(res['message']['ts'])
         user.set_session_stage(2)
         user.set_session_type(StatusType.BN_CREATE)
     elif text == ms.catcher_rec.KEY:
@@ -33,7 +35,8 @@ def stage0(line_bot_api, user, event):
         cr.refresh_catcher_tag()
 
         cr.register(user_id)
-        slack.start_catcher_rec(user.get_name())
+        res = slack.start_catcher_rec(user.get_name())
+        user.set_thread_ts_other(res['message']['ts'])
 
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.catcher_rec.START))
 

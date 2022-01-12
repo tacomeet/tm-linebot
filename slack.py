@@ -17,8 +17,12 @@ def start_contact(name):
     return send_message(name + 'さんからお問い合わせがありました！', channel=CHANNEL_CONTACT)
 
 
-def send_msg_to_thread(name, content, ts):
+def send_msg_to_contact_thread(name, content, ts):
     send_message(name + 'さんからのお問い合わせ内容：\n' + content, ts, channel=CHANNEL_CONTACT)
+
+
+def send_msg_to_other_thread(name, content, ts):
+    send_message(content, ts, channel=CHANNEL_OTHER)
 
 
 def follow(name):
