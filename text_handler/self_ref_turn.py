@@ -4,13 +4,15 @@ import message as ms
 import line
 
 
-def self_ref_exp(line_bot_api, user, event):
+def self_ref_turn(line_bot_api, user, event):
+    ss_stage = user.get_session_stage()
     text = event.message.text
     if text == ms.default.KEY_NEXT:
         msg = _route_next(user)
         if msg:
             line.reply_msg(line_bot_api, event, msg)
-            # line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
+            if ss_stage not in (7,):
+                line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
 
 
 def _route_next(user):
