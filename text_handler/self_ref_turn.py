@@ -8,7 +8,6 @@ import slack
 def self_ref_turn(line_bot_api, user, event):
     ss_stage = user.get_session_stage()
     text = event.message.text
-    user.set_answer_msg(text)
     if text == ms.default.KEY_NEXT:
         slack.send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other())
         user.reset_answer_msg()

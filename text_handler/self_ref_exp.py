@@ -8,7 +8,6 @@ import slack
 def self_ref_exp(line_bot_api, user, event):
     text = event.message.text
     ss_stage = user.get_session_stage()
-    user.set_answer_msg(text)
     if ss_stage == 3:
         slack.send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other())
         user.reset_answer_msg()

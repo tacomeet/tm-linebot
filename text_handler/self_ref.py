@@ -12,6 +12,7 @@ import slack
 
 def self_ref(line_bot_api, user: User, event):
     ss_type = user.get_session_type()
+    user.set_answer_msg(event.message.text)
 
     if ss_type == StatusType.SELF_REF_EXP:
         self_ref_exp(line_bot_api, user, event)
