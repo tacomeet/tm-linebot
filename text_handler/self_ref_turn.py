@@ -2,12 +2,15 @@ from linebot.models import TextSendMessage
 
 import message as ms
 import line
+import slack
 
 
 def self_ref_turn(line_bot_api, user, event):
     ss_stage = user.get_session_stage()
     text = event.message.text
     if text == ms.default.KEY_NEXT:
+        slack.send_msg_to_other_thread(user)
+        user.reset_answer_msg()
         msg = _route_next(user)
         if msg:
             line.reply_msg(line_bot_api, event, msg)
@@ -29,8 +32,12 @@ def _route_next(user):
     elif ss_stage == 6:
         msg = ms.self_ref.TURN_6
     if msg:
+        user.set_question_msg(msg + '\n' + ms.default.ASK_FOR_NEXT)
         user.increment_session_stage()
         return msg
     if ss_stage == 7:
+        user.reset_answer_msg()
+        user.set_question_msg(ms.default.END)
+        slack.send_msg_to_other_thread(user)
         user.reset()
         return ms.default.END

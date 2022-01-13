@@ -2,34 +2,44 @@ from linebot.models import TextSendMessage
 
 import message as ms
 import line
+import slack
 
 
 def self_ref_vis(line_bot_api, user, event):
     text = event.message.text
     ss_stage = user.get_session_stage()
     if ss_stage == 3:
+        slack.send_msg_to_other_thread(user)
+        user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(9)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.VIS_3_YES))
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
+            user.set_question_msg(ms.self_ref.VIS_3_YES + '\n' + ms.default.ASK_FOR_NEXT)
         elif text == 'No':
             user.set_session_stage(4)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.VIS_3_NO))
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
+            user.set_question_msg(ms.self_ref.VIS_3_NO + '\n' + ms.default.ASK_FOR_NEXT)
     if ss_stage == 10:
+        slack.send_msg_to_other_thread(user)
+        user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(12)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.VIS_10_YES))
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
+            user.set_question_msg(ms.self_ref.VIS_10_YES + '\n' + ms.default.ASK_FOR_NEXT)
         elif text == 'No':
             user.set_session_stage(11)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.VIS_10_NO))
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
-    elif text == '次':
+            user.set_question_msg(ms.self_ref.VIS_10_NO + '\n' + ms.default.ASK_FOR_NEXT)
+    elif text == ms.default.KEY_NEXT:
+        slack.send_msg_to_other_thread(user)
+        user.reset_answer_msg()
         msg = _route_next(user)
         if msg:
             line.reply_msg(line_bot_api, event, msg)
-            print(ss_stage)
             if ss_stage not in (2, 9, 12):
                 line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
 
@@ -54,8 +64,12 @@ def _route_next(user):
     elif ss_stage == 11:
         msg = ms.self_ref.VIS_11
     if msg:
+        user.set_question_msg(msg)
         user.increment_session_stage()
         return msg
     if ss_stage == 12:
+        user.reset_answer_msg()
+        user.set_question_msg(ms.default.END)
+        slack.send_msg_to_other_thread(user)
         user.reset()
         return ms.default.END

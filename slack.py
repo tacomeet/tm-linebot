@@ -1,6 +1,7 @@
 from slack_sdk import WebClient
 
 import config
+import const.color as color
 
 # Load channel from config?
 CHANNEL_CONTACT = '#line'
@@ -9,16 +10,24 @@ token = config.SLACK_TOKEN
 client = WebClient(token=token)
 
 
-def send_message(msg, ts=None, channel=CHANNEL_OTHER):
-    return client.chat_postMessage(channel=channel, text=msg, thread_ts=ts)
+def send_message(msg, ts=None, channel=CHANNEL_OTHER, attachments=None):
+    return client.chat_postMessage(channel=channel, text=msg, thread_ts=ts, attachments=attachments)
 
 
 def start_contact(name):
     return send_message(name + 'さんからお問い合わせがありました！', channel=CHANNEL_CONTACT)
 
 
-def send_msg_to_thread(name, content, ts):
+def send_msg_to_contact_thread(name, content, ts):
     send_message(name + 'さんからのお問い合わせ内容：\n' + content, ts, channel=CHANNEL_CONTACT)
+
+
+def send_msg_to_other_thread(user, color=color.SUCCESS):
+    _send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other(), color)
+
+
+def _send_msg_to_other_thread(question, answer, ts, color):
+    send_message(question, ts=ts, attachments=[{"text": answer, "color": color}])
 
 
 def follow(name):

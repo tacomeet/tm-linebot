@@ -27,6 +27,7 @@ import models
 from models import User
 import catcher_rec as cr
 import spreadsheet
+import const.color as color
 
 
 def create_app():
@@ -167,6 +168,9 @@ def handle_text_message(event):
     if ss_stage != 0 and text == ms.default.KEY_END:
         spreadsheet.record_goal_rate(user, worksheet_goal_rate, False)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.default.END))
+        if ss_type != StatusType.CONTACT:
+            user.set_answer_msg(text)
+            slack.send_msg_to_other_thread(user, color=color.INTERRUPTION)
         user.reset()
         cr.reset(user_id)
     elif ss_stage == 0:
@@ -174,8 +178,7 @@ def handle_text_message(event):
     elif ss_type == StatusType.CATCH_REC:
         th.catcher_rec(line_bot_api, user, event)
     elif ss_type == StatusType.CONTACT:
-        profile = line_bot_api.get_profile(user_id)
-        slack.send_msg_to_thread(profile.display_name, text, user.get_thread_ts())
+        slack.send_msg_to_contact_thread(user.get_name(), text, user.get_thread_ts_contact())
     elif st.is_included(StatusType.SELF_REF, ss_type):
         th.self_ref(line_bot_api, user, event)
     elif st.is_included(StatusType.BN_CREATE, ss_type):
@@ -186,7 +189,9 @@ def handle_text_message(event):
 def reply_contact(event):
     if 'bot_id' not in event and 'thread_ts' in event:
         thread_ts = event['thread_ts']
-        user = User.query.filter_by(thread_ts=thread_ts).first()
+        user = User.query.filter_by(thread_ts_contact=thread_ts).first()
+        if user is None:
+            return
         user_id = user.get_id()
         msg = event['text']
         line_bot_api.push_message(user_id, TextSendMessage(text=msg))
