@@ -1,2 +1,2 @@
-GREEN = "#3cb371"
-RED = "#ff6347"
+SUCCESS = "#3cb371"
+INTERRUPTION = "#ff6347"
