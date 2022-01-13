@@ -169,7 +169,7 @@ def handle_text_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.default.END))
         if ss_type != StatusType.CONTACT:
             user.set_answer_msg(text)
-            slack.send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other())
+            slack.send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other(), color="#ff6347")
         user.reset()
         cr.reset(user_id)
     elif ss_stage == 0:
