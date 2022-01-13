@@ -32,8 +32,8 @@ def _route_next(user):
     elif ss_stage == 6:
         msg = ms.self_ref.TURN_6
     if msg:
-        user.increment_session_stage()
         user.set_question_msg(msg + '\n' + ms.default.ASK_FOR_NEXT)
+        user.increment_session_stage()
         return msg
     if ss_stage == 7:
         user.reset_answer_msg()

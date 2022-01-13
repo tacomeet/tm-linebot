@@ -1,5 +1,6 @@
 from datetime import datetime
 from database.database import db
+from linebot.models import TemplateSendMessage
 
 
 class User(db.Model):
@@ -72,7 +73,10 @@ class User(db.Model):
         return self.question_msg
 
     def set_question_msg(self, question):
-        self.question_msg = question
+        if isinstance(question, str):
+            self.question_msg = question
+        elif isinstance(question, TemplateSendMessage):
+            self.question_msg = question.alt_text
 
     def get_answer_msg(self):
         return self.answer_msg

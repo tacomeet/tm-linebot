@@ -64,10 +64,7 @@ def _route_next(user):
     elif ss_stage == 11:
         msg = ms.self_ref.VIS_11
     if msg:
-        if ss_stage in (2, 9):
-            user.set_question_msg(msg.alt_text)
-        else:
-            user.set_question_msg(msg)
+        user.set_question_msg(msg)
         user.increment_session_stage()
         return msg
     if ss_stage == 12:
