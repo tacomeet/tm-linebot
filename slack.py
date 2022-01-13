@@ -1,6 +1,7 @@
 from slack_sdk import WebClient
 
 import config
+import const.color as color
 
 # Load channel from config?
 CHANNEL_CONTACT = '#line'
@@ -21,7 +22,7 @@ def send_msg_to_contact_thread(name, content, ts):
     send_message(name + 'さんからのお問い合わせ内容：\n' + content, ts, channel=CHANNEL_CONTACT)
 
 
-def send_msg_to_other_thread(question, answer, ts, color="#3cb371"):
+def send_msg_to_other_thread(question, answer, ts, color=color.GREEN):
     send_message(question, ts=ts, attachments=[{"text": answer, "color": color}])
 
 
