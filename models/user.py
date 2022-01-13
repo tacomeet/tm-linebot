@@ -16,13 +16,13 @@ class User(db.Model):
     created_at = db.Column(db.DateTime(), default=datetime.now)
     session_start_timestamp = db.Column(db.DateTime())
 
-    def __init__(self, id, name, session_type=None, session_stage=0, thread_ts_contact=None, thread_ts_other=None):
+    def __init__(self, id, name, session_type=None, session_stage=0):
         self.id = id
         self.name = name
         self.session_type = session_type
         self.session_stage = session_stage
-        self.thread_ts_contact = thread_ts_contact
-        self.thread_ts_other = thread_ts_other
+        self.thread_ts_contact = None
+        self.thread_ts_other = None
         self.is_matched = False
         self.last_question_id = None
         self.session_start_timestamp = None
