@@ -14,7 +14,7 @@ def self_ref_exp(line_bot_api, user, event):
         elif text == 'No':
             user.set_session_stage(4)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.EXP_3_NO))
-    elif text == '次':
+    elif text == ms.default.KEY_NEXT:
         msg = _route_next(user)
         if msg:
             line.reply_msg(line_bot_api, event, msg)

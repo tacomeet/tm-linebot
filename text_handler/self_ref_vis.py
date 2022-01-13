@@ -25,7 +25,7 @@ def self_ref_vis(line_bot_api, user, event):
             user.set_session_stage(11)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.VIS_10_NO))
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
-    elif text == '次':
+    elif text == ms.default.KEY_NEXT:
         msg = _route_next(user)
         if msg:
             line.reply_msg(line_bot_api, event, msg)

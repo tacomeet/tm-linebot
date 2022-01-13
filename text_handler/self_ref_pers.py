@@ -22,7 +22,7 @@ def self_ref_pers(line_bot_api, user, event):
         elif text == 'No':
             user.set_session_stage(8)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_7_NO))
-    else:
+    elif text == ms.default.KEY_NEXT:
         msg = _route_next(user)
         if msg:
             line.reply_msg(line_bot_api, event, msg)
