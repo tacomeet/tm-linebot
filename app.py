@@ -191,6 +191,8 @@ def reply_contact(event):
     if 'bot_id' not in event and 'thread_ts' in event:
         thread_ts = event['thread_ts']
         user = User.query.filter_by(thread_ts_contact=thread_ts).first()
+        if user is None:
+            return
         user_id = user.get_id()
         msg = event['text']
         line_bot_api.push_message(user_id, TextSendMessage(text=msg))
