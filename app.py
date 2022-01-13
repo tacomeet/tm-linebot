@@ -167,22 +167,21 @@ def handle_text_message(event):
     if ss_stage != 0 and text == ms.default.KEY_END:
         spreadsheet.record_goal_rate(user, worksheet_goal_rate, False)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.default.END))
-        if ss_type != StatusType.CONTACT:
-            slack.send_msg_to_other_thread(user.get_question_msg(), text, user.get_thread_ts_other())
+        # if ss_type != StatusType.CONTACT:
+        #     slack.send_msg_to_other_thread(user.get_question_msg(), text, user.get_thread_ts_other())
         user.reset()
         cr.reset(user_id)
     elif ss_stage == 0:
         th.stage0(line_bot_api, user, event)
     elif ss_type == StatusType.CATCH_REC:
-        slack.send_msg_to_other_thread(text, user.get_thread_ts_other())
+        # slack.send_msg_to_other_thread(text, user.get_thread_ts_other())
         th.catcher_rec(line_bot_api, user, event)
     elif ss_type == StatusType.CONTACT:
         slack.send_msg_to_contact_thread(user.get_name(), text, user.get_thread_ts_contact())
     elif st.is_included(StatusType.SELF_REF, ss_type):
-        slack.send_msg_to_other_thread(user.get_question_msg(), text, user.get_thread_ts_other())
         th.self_ref(line_bot_api, user, event)
     elif st.is_included(StatusType.BN_CREATE, ss_type):
-        slack.send_msg_to_other_thread(text, user.get_thread_ts_other())
+        # slack.send_msg_to_other_thread(text, user.get_thread_ts_other())
         th.bn_create(line_bot_api, user, event)
     db.session.commit()
 
