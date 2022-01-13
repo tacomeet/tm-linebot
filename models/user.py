@@ -70,7 +70,10 @@ class User(db.Model):
         return self.question_msg
 
     def set_question_msg(self, question):
-        self.question_msg = question
+        if self.question_msg is None:
+            self.question_msg = question
+        else:
+            self.question_msg = self.question_msg + '\n' + question
 
     def get_is_matched(self):
         return self.is_matched
