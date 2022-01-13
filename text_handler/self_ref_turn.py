@@ -17,7 +17,6 @@ def self_ref_turn(line_bot_api, user, event):
             line.reply_msg(line_bot_api, event, msg)
             if ss_stage not in (7,):
                 line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
-                user.set_question_msg(msg + '\n' + ms.default.ASK_FOR_NEXT)
 
 
 def _route_next(user):
@@ -35,6 +34,7 @@ def _route_next(user):
         msg = ms.self_ref.TURN_6
     if msg:
         user.increment_session_stage()
+        user.set_question_msg(msg + '\n' + ms.default.ASK_FOR_NEXT)
         return msg
     if ss_stage == 7:
         slack.send_msg_to_other_thread(ms.default.END, None, user.get_thread_ts_other())
