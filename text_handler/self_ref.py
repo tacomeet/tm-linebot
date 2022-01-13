@@ -7,6 +7,7 @@ from text_handler.self_ref_exp import self_ref_exp
 from text_handler.self_ref_pers import self_ref_pers
 from text_handler.self_ref_vis import self_ref_vis
 from text_handler.self_ref_turn import self_ref_turn
+# import slack
 
 
 def self_ref(line_bot_api, user: User, event):

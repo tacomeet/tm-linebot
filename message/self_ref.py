@@ -5,13 +5,14 @@ KEY = default.KEY_SELF_REF
 START = '自己分析を開始します！\n' \
         '「次」または必要項目を入力して次の質問に行けます！\n' \
         '「終了」と入力してセッション自体を終了します！'
+TYPE_SELECT = 'どの項目について自己分析を行いますか？'
 M_1_EXP = '経験'
 M_1_PERS = '個性'
 M_1_VIS = 'ビジョン'
 M_1_TURN = 'ターニングポイント'
 M_1 = TemplateSendMessage(
-    alt_text='どの項目について自己分析を行いますか？', template=ButtonsTemplate(
-        title='どの項目について自己分析を行いますか？', text='上から順番に行うことをお勧め致します！', actions=[
+    alt_text=TYPE_SELECT, template=ButtonsTemplate(
+        title=TYPE_SELECT, text='上から順番に行うことをお勧め致します！', actions=[
             MessageAction(label=M_1_EXP, text=M_1_EXP),
             MessageAction(label=M_1_PERS, text=M_1_PERS),
             MessageAction(label=M_1_VIS, text=M_1_VIS),

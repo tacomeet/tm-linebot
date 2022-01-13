@@ -20,6 +20,7 @@ def stage0(line_bot_api, user, event):
         line_bot_api.push_message(user_id, ms.self_ref.M_1)
         res = slack.start_self_rec(user.get_name())
         user.set_thread_ts_other(res['message']['ts'])
+        user.set_question_msg(ms.self_ref.START + '\n' + ms.self_ref.TYPE_SELECT)
         user.set_session_stage(2)
         user.set_session_type(StatusType.SELF_REF)
     elif text == ms.bn_create.KEY:

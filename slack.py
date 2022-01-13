@@ -9,8 +9,8 @@ token = config.SLACK_TOKEN
 client = WebClient(token=token)
 
 
-def send_message(msg, ts=None, channel=CHANNEL_OTHER):
-    return client.chat_postMessage(channel=channel, text=msg, thread_ts=ts)
+def send_message(msg, ts=None, channel=CHANNEL_OTHER, attachments=None):
+    return client.chat_postMessage(channel=channel, text=msg, thread_ts=ts, attachments=attachments)
 
 
 def start_contact(name):
@@ -21,8 +21,8 @@ def send_msg_to_contact_thread(name, content, ts):
     send_message(name + 'さんからのお問い合わせ内容：\n' + content, ts, channel=CHANNEL_CONTACT)
 
 
-def send_msg_to_other_thread(content, ts):
-    send_message(content, ts)
+def send_msg_to_other_thread(question, answer, ts):
+    send_message(question, ts=ts, attachments=[{"text": answer, "color": "#3cb371"}])
 
 
 def follow(name):
