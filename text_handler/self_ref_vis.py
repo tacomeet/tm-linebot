@@ -9,7 +9,7 @@ def self_ref_vis(line_bot_api, user, event):
     text = event.message.text
     ss_stage = user.get_session_stage()
     if ss_stage == 3:
-        slack.send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other())
+        slack.send_msg_to_other_thread(user)
         user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(9)
@@ -22,7 +22,7 @@ def self_ref_vis(line_bot_api, user, event):
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
             user.set_question_msg(ms.self_ref.VIS_3_NO + '\n' + ms.default.ASK_FOR_NEXT)
     if ss_stage == 10:
-        slack.send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other())
+        slack.send_msg_to_other_thread(user)
         user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(12)
@@ -35,7 +35,7 @@ def self_ref_vis(line_bot_api, user, event):
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
             user.set_question_msg(ms.self_ref.VIS_10_NO + '\n' + ms.default.ASK_FOR_NEXT)
     elif text == ms.default.KEY_NEXT:
-        slack.send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other())
+        slack.send_msg_to_other_thread(user)
         user.reset_answer_msg()
         msg = _route_next(user)
         if msg:
@@ -71,6 +71,8 @@ def _route_next(user):
         user.increment_session_stage()
         return msg
     if ss_stage == 12:
-        slack.send_msg_to_other_thread(ms.default.END, None, user.get_thread_ts_other())
+        user.reset_answer_msg()
+        user.set_question_msg(ms.default.END)
+        slack.send_msg_to_other_thread(user)
         user.reset()
         return ms.default.END

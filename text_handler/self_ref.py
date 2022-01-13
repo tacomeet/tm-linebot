@@ -29,7 +29,8 @@ def self_ref(line_bot_api, user: User, event):
 def _self_ref(line_bot_api, user: User, event):
     text = event.message.text
     if text in (ms.self_ref.M_1_EXP, ms.self_ref.M_1_PERS, ms.self_ref.M_1_VIS, ms.self_ref.M_1_TURN):
-        slack.send_msg_to_other_thread(user.get_question_msg(), text, user.get_thread_ts_other())
+        slack.send_msg_to_other_thread(user)
+        user.reset_answer_msg()
     if text == ms.self_ref.M_1_EXP:
         user.set_session_type(StatusType.SELF_REF_EXP)
         user.set_session_stage(2)

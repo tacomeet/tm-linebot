@@ -22,7 +22,11 @@ def send_msg_to_contact_thread(name, content, ts):
     send_message(name + 'さんからのお問い合わせ内容：\n' + content, ts, channel=CHANNEL_CONTACT)
 
 
-def send_msg_to_other_thread(question, answer, ts, color=color.GREEN):
+def send_msg_to_other_thread(user, color=color.GREEN):
+    _send_msg_to_other_thread(user.get_question_msg(), user.get_answer_msg(), user.get_thread_ts_other(), color)
+
+
+def _send_msg_to_other_thread(question, answer, ts, color):
     send_message(question, ts=ts, attachments=[{"text": answer, "color": color}])
 
 
