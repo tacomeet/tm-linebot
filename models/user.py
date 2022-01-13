@@ -11,6 +11,7 @@ class User(db.Model):
     session_stage = db.Column(db.Integer())
     thread_ts_contact = db.Column(db.String())
     thread_ts_other = db.Column(db.String())
+    question_msg = db.Column(db.String())
     is_matched = db.Column(db.Boolean())
     last_question_id = db.Column(db.Integer())
     created_at = db.Column(db.DateTime(), default=datetime.now)
@@ -23,6 +24,7 @@ class User(db.Model):
         self.session_stage = session_stage
         self.thread_ts_contact = None
         self.thread_ts_other = None
+        self.question_msg = None
         self.is_matched = False
         self.last_question_id = None
         self.session_start_timestamp = None
@@ -63,6 +65,12 @@ class User(db.Model):
 
     def set_thread_ts_other(self, thread_ts):
         self.thread_ts_other = thread_ts
+
+    def get_question_msg(self):
+        return self.question_msg
+
+    def set_question_msg(self, question):
+        self.question_msg = question
 
     def get_is_matched(self):
         return self.is_matched
