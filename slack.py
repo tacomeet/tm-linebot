@@ -48,6 +48,3 @@ def start_bn_creation(name):
 
 def start_catcher_rec(name):
     return send_message(name + 'さんがロールモデルマッチングを始めました！')
-
-
-client.chat_postEphemeral
