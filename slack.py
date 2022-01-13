@@ -21,8 +21,8 @@ def send_msg_to_contact_thread(name, content, ts):
     send_message(name + 'さんからのお問い合わせ内容：\n' + content, ts, channel=CHANNEL_CONTACT)
 
 
-def send_msg_to_other_thread(name, content, ts):
-    send_message(content, ts, channel=CHANNEL_OTHER)
+def send_msg_to_other_thread(content, ts):
+    send_message(content, ts)
 
 
 def follow(name):
@@ -47,3 +47,6 @@ def start_bn_creation(name):
 
 def start_catcher_rec(name):
     return send_message(name + 'さんがロールモデルマッチングを始めました！')
+
+
+client.chat_postEphemeral
