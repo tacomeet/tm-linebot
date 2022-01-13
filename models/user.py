@@ -12,6 +12,7 @@ class User(db.Model):
     thread_ts_contact = db.Column(db.String())
     thread_ts_other = db.Column(db.String())
     question_msg = db.Column(db.String())
+    answer_msg = db.Column(db.String())
     is_matched = db.Column(db.Boolean())
     last_question_id = db.Column(db.Integer())
     created_at = db.Column(db.DateTime(), default=datetime.now)
@@ -30,6 +31,7 @@ class User(db.Model):
         self.session_start_timestamp = None
 
     def reset(self):
+        self.answer_msg = None
         self.session_type = None
         self.session_stage = 0
 
@@ -70,10 +72,19 @@ class User(db.Model):
         return self.question_msg
 
     def set_question_msg(self, question):
-        if self.question_msg is None:
-            self.question_msg = question
+        self.question_msg = question
+
+    def get_answer_msg(self):
+        return self.answer_msg
+
+    def set_answer_msg(self, answer):
+        if self.answer_msg is None:
+            self.answer_msg = answer
         else:
-            self.question_msg = self.question_msg + '\n' + question
+            self.answer_msg = self.answer_msg + '\n' + answer
+
+    def reset_answer_msg(self):
+        self.answer_msg = None
 
     def get_is_matched(self):
         return self.is_matched
