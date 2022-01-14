@@ -2,6 +2,7 @@ from linebot.models import TextSendMessage, FlexSendMessage
 import message as ms
 import catcher_rec as cr
 from models import User
+import slack
 
 
 def catcher_rec(line_bot_api, user, event):
@@ -12,9 +13,14 @@ def catcher_rec(line_bot_api, user, event):
         return
 
     possible_to_match = True
+    user.set_answer_msg(text)
     if user.get_is_matched():
         if text == 'Yes':
+            slack.send_msg_to_other_thread(user)
+            user.reset_answer_msg()
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.catcher_rec.END))
+            user.set_question_msg(ms.catcher_rec.END)
+            slack.send_msg_to_other_thread(user)
             cr.reset(user_id)
             user.reset()
             return
@@ -32,15 +38,20 @@ def catcher_rec(line_bot_api, user, event):
     tag_id, question = cr.get_question(user_id)
     if not tag_id:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.catcher_rec.SORRY))
+        user.set_question_msg(ms.catcher_rec.SORRY)
+        slack.send_msg_to_other_thread(user)
         cr.reset(user_id)
         user.reset()
     else:
+        slack.send_msg_to_other_thread(user)
+        user.reset_answer_msg()
         user.last_question_id = tag_id
         user.set_is_matched(False)
         msg = ms.catcher_rec.CONFIRM
         msg.alt_text = question
         msg.template.text = question
         line_bot_api.reply_message(event.reply_token, msg)
+        user.set_question_msg(question)
 
 
 def send_rec(line_bot_api, user: User, event, catcher_id):
@@ -49,6 +60,15 @@ def send_rec(line_bot_api, user: User, event, catcher_id):
     msg = ms.catcher_rec.CONFIRM
     msg.alt_text = ms.catcher_rec.CONFIRM_TEXT
     msg.template.text = ms.catcher_rec.CONFIRM_TEXT
+    slack.send_msg_to_other_thread(user)
+    catcher = ms.catcher_rec.get_catcher(catcher_id)
     line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text="catcher profile",
-                                                                  contents=ms.catcher_rec.get_catcher(catcher_id)))
+                                                                  contents=catcher))
     line_bot_api.push_message(user.id, msg)
+    user.reset_answer_msg()
+    user.set_question_msg('```' + '\n'
+                          + 'Name: ' + catcher.body.contents[0].text + '\n'
+                          + 'Work: ' + catcher.body.contents[1].contents[0].contents[1].text + '\n'
+                          + 'Job: ' + catcher.body.contents[1].contents[1].contents[1].text + '\n'
+                          + '```' + '\n'
+                          + ms.catcher_rec.CONFIRM_TEXT)
