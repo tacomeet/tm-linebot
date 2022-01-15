@@ -28,6 +28,7 @@ def stage0(line_bot_api, user, event):
         line_bot_api.push_message(user_id, TextSendMessage(text=ms.bn_create.M_1))
         res = slack.start_bn_creation(user.get_name())
         user.set_thread_ts_other(res['message']['ts'])
+        user.set_question_msg(ms.bn_create.START + '\n' + ms.bn_create.M_1)
         user.set_session_stage(2)
         user.set_session_type(StatusType.BN_CREATE)
     elif text == ms.catcher_rec.KEY:
@@ -40,6 +41,8 @@ def stage0(line_bot_api, user, event):
         user.set_thread_ts_other(res['message']['ts'])
 
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.catcher_rec.START))
+        user.set_question_msg(ms.catcher_rec.START)
+        slack.send_msg_to_other_thread(user)
 
         msg = ms.catcher_rec.CONFIRM
         tag_id, question = cr.get_question(user_id)
@@ -49,6 +52,7 @@ def stage0(line_bot_api, user, event):
         msg.alt_text = question
         msg.template.text = question
         line_bot_api.push_message(user_id, msg)
+        user.set_question_msg(msg)
 
         user.set_session_type(StatusType.CATCH_REC)
         user.set_session_stage(1)
