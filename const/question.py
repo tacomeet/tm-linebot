@@ -17,6 +17,7 @@ QUESTION_24 = '無職の人が何をしているのか気になる'
 QUESTION_12 = '会社経営に興味がある'
 QUESTION_17 = '起業に興味がある'
 QUESTION_31 = '銀行での仕事に興味がある'
+QUESTION_35 = '外資系の企業に興味がある'
 
 questions = dict()
 questions[27] = QUESTION_27
@@ -38,3 +39,4 @@ questions[24] = QUESTION_24
 questions[12] = QUESTION_12
 questions[17] = QUESTION_17
 questions[31] = QUESTION_31
+questions[35] = QUESTION_35
