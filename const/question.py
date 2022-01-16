@@ -39,4 +39,4 @@ questions[24] = QUESTION_24
 questions[12] = QUESTION_12
 questions[17] = QUESTION_17
 questions[31] = QUESTION_31
-# questions[35] = QUESTION_35
+questions[35] = QUESTION_35
