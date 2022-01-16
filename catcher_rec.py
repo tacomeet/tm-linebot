@@ -39,8 +39,15 @@ def get_question(user_id) -> (int, str):
     cand_tags -= set(used_tags)
     if len(cand_tags) == 0:
         return None, None
-    t = random.choice(list(cand_tags))
-    q = question.questions[t]
+    while True:
+        t = random.choice(list(cand_tags))
+        try:
+            q = question.questions[t]
+            break
+        except KeyError:
+            db.session.add(UsedTag(user_id, t))
+            exclude_tag(user_id, t)
+            cand_tags -= {t}
     db.session.add(UsedTag(user_id, t))
     return t, q
 
@@ -73,7 +80,7 @@ def refresh_catcher_tag():
 def exclude_tag(user_id, tag_id):
     cand = get_candidates(user_id)
     for c in cand:
-        tag_ids = [ct.tag_id for ct in CatcherTag.query.filter_by(catcher_id=c.catcher_id).all()]
+        tag_ids = {ct.tag_id for ct in CatcherTag.query.filter_by(catcher_id=c.catcher_id).all()}
         if tag_id in tag_ids:
             CatcherCandidate.query.filter_by(user_id=user_id, catcher_id=c.catcher_id).delete()
 
