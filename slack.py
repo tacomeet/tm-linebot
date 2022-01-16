@@ -55,4 +55,4 @@ def start_catcher_rec(name):
 
 
 def tag_missing(tag_id):
-    return send_message(f'{tag_id}番のタグが見つかりませんでした...')
+    return send_message(f'{tag_id}番のタグの質問が見つかりませんでした...')
