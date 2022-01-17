@@ -2,6 +2,7 @@ import logging
 import random
 
 import requests
+import slack
 
 from const import question
 from database.database import db
@@ -37,10 +38,18 @@ def get_question(user_id) -> (int, str):
         cand_tags.update(c.tag_id for c in CatcherTag.query.filter_by(catcher_id=c.catcher_id).all())
     used_tags = set(t.tag_id for t in UsedTag.query.filter_by(user_id=user_id).all())
     cand_tags -= set(used_tags)
-    if len(cand_tags) == 0:
-        return None, None
-    t = random.choice(list(cand_tags))
-    q = question.questions[t]
+    while True:
+        if len(cand_tags) == 0:
+            return None, None
+        t = random.choice(list(cand_tags))
+        try:
+            q = question.questions[t]
+            break
+        except KeyError:
+            db.session.add(UsedTag(user_id, t))
+            exclude_tag(user_id, t)
+            cand_tags -= {t}
+            slack.tag_missing(t)
     db.session.add(UsedTag(user_id, t))
     return t, q
 
@@ -73,7 +82,7 @@ def refresh_catcher_tag():
 def exclude_tag(user_id, tag_id):
     cand = get_candidates(user_id)
     for c in cand:
-        tag_ids = [ct.tag_id for ct in CatcherTag.query.filter_by(catcher_id=c.catcher_id).all()]
+        tag_ids = {ct.tag_id for ct in CatcherTag.query.filter_by(catcher_id=c.catcher_id).all()}
         if tag_id in tag_ids:
             CatcherCandidate.query.filter_by(user_id=user_id, catcher_id=c.catcher_id).delete()
 

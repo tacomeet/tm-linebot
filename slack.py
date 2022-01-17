@@ -52,3 +52,7 @@ def start_bn_creation(name):
 
 def start_catcher_rec(name):
     return send_message(name + 'さんがロールモデルマッチングを始めました！')
+
+
+def tag_missing(tag_id):
+    return send_message(f'{tag_id}番のタグの質問が見つかりませんでした...')
