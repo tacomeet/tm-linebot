@@ -48,7 +48,7 @@ with app.app_context():
 workbook = config.connect_gspread()
 worksheet_goal_rate = workbook.worksheet('Goal_Rate')
 
-logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+logging.basicConfig(level=logging.WARN, stream=sys.stdout)
 
 channel_access_token = config.LINE_CHANNEL_ACCESS_TOKEN
 channel_secret = config.LINE_CHANNEL_SECRET
@@ -64,20 +64,9 @@ handler = WebhookHandler(channel_secret)
 schedule.every(1).week.do(cr.refresh_catcher_tag)
 
 
-@app.route('/test', methods=["GET"])
-def test():
-    users = models.User.query.all()
-    if len(users) == 0:
-        return 'no user'
-    return Response(json.dumps(users[0].__dict__), mimetype='application/json')
-
-
-@app.route('/test/gspread', methods=["GET"])
-def test_gspread():
-    worksheet = workbook.worksheet('user')
-    df = spreadsheet.get_worksheet_as_dataframe(worksheet)
-    print(df)
-    return Response(df.to_json(), mimetype='application/json')
+@app.route('/health', methods=["GET"])
+def health():
+    return 'OK'
 
 
 @app.route('/', methods=["POST"])
