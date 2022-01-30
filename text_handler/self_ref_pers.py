@@ -9,8 +9,9 @@ def self_ref_pers(line_bot_api, user, event):
     text = event.message.text
     ss_stage = user.get_session_stage()
     if ss_stage == 3:
-        slack.send_msg_to_other_thread(user)
-        user.reset_answer_msg()
+        if text in ['Yes', 'No']:
+            slack.send_msg_to_other_thread(user)
+            user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(5)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_3_YES))
@@ -21,8 +22,9 @@ def self_ref_pers(line_bot_api, user, event):
             line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.PERS_3_NO_EX))
             user.set_question_msg(ms.self_ref.PERS_3_NO + '\n' + ms.self_ref.PERS_3_NO_EX)
     elif ss_stage == 7:
-        slack.send_msg_to_other_thread(user)
-        user.reset_answer_msg()
+        if text in ['Yes', 'No']:
+            slack.send_msg_to_other_thread(user)
+            user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(8)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_7_YES))
