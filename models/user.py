@@ -92,7 +92,7 @@ class User(db.Model):
         if self.answer_msg is None:
             self.answer_msg = answer
         else:
-            self.answer_msg = self.answer_msg + '\n' + answer
+            self.answer_msg += '\n' + answer
 
     def reset_answer_msg(self):
         self.answer_msg = None
