@@ -1,3 +1,4 @@
+import line
 import slack
 from linebot.models import TextSendMessage
 # import message.self_ref
@@ -18,19 +19,23 @@ def stage0(line_bot_api, user, event):
     if text == ms.self_ref.KEY:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.START))
         line_bot_api.push_message(user_id, ms.self_ref.M_1)
+        # line.reply_msg(line_bot_api, event, ms.self_ref.M_1)
+
         res = slack.start_self_rec(user.get_name())
         user.set_thread_ts_other(res['message']['ts'])
         user.set_question_msg(ms.self_ref.START + '\n' + ms.self_ref.TYPE_SELECT)
         user.set_session_stage(2)
         user.set_session_type(StatusType.SELF_REF)
+
     elif text == ms.bn_create.KEY:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.bn_create.START))
-        line_bot_api.push_message(user_id, TextSendMessage(text=ms.bn_create.M_1))
+        line.reply_msg(line_bot_api, event, ms.bn_create.M_1)
+
         res = slack.start_bn_creation(user.get_name())
         user.set_thread_ts_other(res['message']['ts'])
-        user.set_question_msg(ms.bn_create.START + '\n' + ms.bn_create.M_1)
+        user.set_question_msg(ms.bn_create.M_1)
         user.set_session_stage(2)
         user.set_session_type(StatusType.BN_CREATE)
+
     elif text == ms.catcher_rec.KEY:
         # execute cron job
         # schedule.run_pending()
