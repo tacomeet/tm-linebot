@@ -73,7 +73,14 @@ class User(db.Model):
         return self.question_msg
 
     def set_question_msg(self, question):
-        if isinstance(question, str):
+        if isinstance(question, list):
+            self.question_msg = question[0]
+            for q in question[1:]:
+                if isinstance(q, str):
+                    self.question_msg += '\n' + q
+                elif isinstance(q, TemplateSendMessage):
+                    self.question_msg += '\n' + q.alt_text
+        elif isinstance(question, str):
             self.question_msg = question
         elif isinstance(question, TemplateSendMessage):
             self.question_msg = question.alt_text
@@ -85,7 +92,7 @@ class User(db.Model):
         if self.answer_msg is None:
             self.answer_msg = answer
         else:
-            self.answer_msg = self.answer_msg + '\n' + answer
+            self.answer_msg += '\n' + answer
 
     def reset_answer_msg(self):
         self.answer_msg = None
