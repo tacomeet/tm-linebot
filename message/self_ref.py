@@ -10,25 +10,24 @@ M_1_EXP = '経験'
 M_1_PERS = '個性'
 M_1_VIS = 'ビジョン'
 M_1_TURN = 'ターニングポイント'
-M_1_BODY = TemplateSendMessage(
-    alt_text=TYPE_SELECT, template=ButtonsTemplate(
-        title=TYPE_SELECT, text='上から順番に行うことをお勧め致します！', actions=[
-            MessageAction(label=M_1_EXP, text=M_1_EXP),
-            MessageAction(label=M_1_PERS, text=M_1_PERS),
-            MessageAction(label=M_1_VIS, text=M_1_VIS),
-            MessageAction(label=M_1_TURN, text=M_1_TURN),
-        ]))
 M_1 = [
     START,
-    M_1_BODY
+    TemplateSendMessage(
+        alt_text=TYPE_SELECT, template=ButtonsTemplate(
+            title=TYPE_SELECT, text='上から順番に行うことをお勧め致します！', actions=[
+                MessageAction(label=M_1_EXP, text=M_1_EXP),
+                MessageAction(label=M_1_PERS, text=M_1_PERS),
+                MessageAction(label=M_1_VIS, text=M_1_VIS),
+                MessageAction(label=M_1_TURN, text=M_1_TURN),
+            ]))
 ]
 # Experience
 EXP_1_EX = '例：小さい頃アメリカに住んでおり、英語が話せる'
 EXP_1 = [
     '進捗：[ ■□□□□□□□□□ ] (10%)',
     '趣味や独学で身につけたことなどを書き出してください',
-    default.ASK_FOR_NEXT,
-    EXP_1_EX
+    EXP_1_EX,
+    default.ASK_FOR_NEXT
 ]
 EXP_2_BODY = TemplateSendMessage(
     template=ConfirmTemplate(

@@ -14,24 +14,23 @@ def self_ref_pers(line_bot_api, user, event):
             user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(5)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_3_YES))
+            line.reply_msg(line_bot_api, event, ms.self_ref.PERS_3_YES)
             user.set_question_msg(ms.self_ref.PERS_3_YES)
         elif text == 'No':
             user.set_session_stage(4)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_3_NO))
-            line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.PERS_3_NO_EX))
-            user.set_question_msg(ms.self_ref.PERS_3_NO + '\n' + ms.self_ref.PERS_3_NO_EX)
+            line.reply_msg(line_bot_api, event, ms.self_ref.PERS_3_NO)
+            user.set_question_msg(ms.self_ref.PERS_3_NO)
     elif ss_stage == 7:
         if text in ['Yes', 'No']:
             slack.send_msg_to_other_thread(user)
             user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(8)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_7_YES))
+            line.reply_msg(line_bot_api, event, ms.self_ref.PERS_7_YES)
             user.set_question_msg(ms.self_ref.PERS_7_YES)
         elif text == 'No':
             user.set_session_stage(8)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_7_NO))
+            line.reply_msg(line_bot_api, event, ms.self_ref.PERS_7_NO)
             user.set_question_msg(ms.self_ref.PERS_7_NO)
     elif text == ms.default.KEY_NEXT:
         slack.send_msg_to_other_thread(user)

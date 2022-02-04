@@ -1,5 +1,6 @@
 from linebot.models import TextSendMessage
 
+import line
 from models import User
 from models.status_type import StatusType
 import message as ms
@@ -34,27 +35,20 @@ def _self_ref(line_bot_api, user: User, event):
     if text == ms.self_ref.M_1_EXP:
         user.set_session_type(StatusType.SELF_REF_EXP)
         user.set_session_stage(2)
-        user.set_question_msg(ms.self_ref.EXP_1 + '\n' + ms.self_ref.EXP_1_EX)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.EXP_1))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.EXP_1_EX))
+        user.set_question_msg(ms.self_ref.EXP_1)
+        line.reply_msg(line_bot_api, event, ms.self_ref.EXP_1)
     elif text == ms.self_ref.M_1_PERS:
         user.set_session_type(StatusType.SELF_REF_PERS)
         user.set_session_stage(2)
-        user.set_question_msg(ms.self_ref.PERS_1 + '\n' + ms.self_ref.PERS_1_EX)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.PERS_1))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.PERS_1_EX))
+        user.set_question_msg(ms.self_ref.PERS_1)
+        line.reply_msg(line_bot_api, event, ms.self_ref.PERS_1)
     elif text == ms.self_ref.M_1_VIS:
         user.set_session_type(StatusType.SELF_REF_VIS)
         user.set_session_stage(2)
-        user.set_question_msg(ms.self_ref.VIS_1 + '\n' + ms.self_ref.VIS_1_EX_1 + '\n' + ms.self_ref.VIS_1_EX_2 + '\n' + ms.default.ASK_FOR_NEXT)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.VIS_1))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.VIS_1_EX_1))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.VIS_1_EX_2))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
+        user.set_question_msg(ms.self_ref.VIS_1)
+        line.reply_msg(line_bot_api, event, ms.self_ref.VIS_1)
     elif text == ms.self_ref.M_1_TURN:
         user.set_session_type(StatusType.SELF_REF_TURN)
         user.set_session_stage(2)
-        user.set_question_msg(ms.self_ref.TURN_1_1 + '\n' + ms.self_ref.TURN_1_2 + '\n' + ms.default.ASK_FOR_NEXT)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.TURN_1_1))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.self_ref.TURN_1_2))
-        line_bot_api.push_message(user.get_id(), TextSendMessage(text=ms.default.ASK_FOR_NEXT))
+        user.set_question_msg(ms.self_ref.TURN_1)
+        line.reply_msg(line_bot_api, event, ms.self_ref.TURN_1)
