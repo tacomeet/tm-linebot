@@ -178,7 +178,12 @@ def handle_text_message(event):
 def reply_contact(event):
     if 'bot_id' not in event and 'thread_ts' in event:
         thread_ts = event['thread_ts']
-        user = User.query.filter_by(thread_ts_contact=thread_ts).first()
+        channel = event['channel']
+        user = None
+        if channel == config.CONTACT_CHANNEL_ID:
+            user = User.query.filter_by(thread_ts_contact=thread_ts).first()
+        elif channel == config.OTHER_CHANNEL_ID:
+            user = User.query.filter_by(thread_ts_other=thread_ts).first()
         if user is None:
             return
         user_id = user.get_id()
