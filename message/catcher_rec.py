@@ -1,7 +1,9 @@
 import requests
+import io
 from linebot.models import TemplateSendMessage, ConfirmTemplate, MessageAction, BubbleContainer, ImageComponent, \
     URIAction, BoxComponent, TextComponent, SeparatorComponent, ButtonComponent
 from . import default
+import const.tag
 
 KEY = default.KEY_CATCHER_REC
 START = 'ロールモデル マッチングを開始します！\n' \
@@ -12,6 +14,7 @@ CONFIRM = TemplateSendMessage(
             MessageAction(label='Yes', text='Yes'),
             MessageAction(label='No', text='No'),
         ]))
+COMMON_TAG = 'キャッチャーとの共通の項目'
 CONFIRM_TEXT = 'この方はどうでしょうか？'
 SORRY = 'ごめんなさい！マッチする人が現状はいません。\n' \
         '運営に連絡くだされば、なんとか探します！'
@@ -48,6 +51,14 @@ def get_catcher(uid):
     msg.footer.contents[1].action.uri = url
 
     return msg
+
+
+def get_common_tags_msg(common_tags):
+    msg = io.StringIO()
+    msg.write(COMMON_TAG)
+    for tag in common_tags:
+        msg.write('\n・' + const.tag.tags[tag])
+    return msg.getvalue()
 
 
 PROFILE = BubbleContainer(
