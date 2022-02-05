@@ -17,13 +17,11 @@ def stage0(line_bot_api, user, event):
     user_id = event.source.user_id
     user.set_session_start_timestamp()
     if text == ms.self_ref.KEY:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.START))
-        line_bot_api.push_message(user_id, ms.self_ref.M_1)
-        # line.reply_msg(line_bot_api, event, ms.self_ref.M_1)
+        line.reply_msg(line_bot_api, event, ms.self_ref.M_1)
 
         res = slack.start_self_rec(user.get_name())
         user.set_thread_ts_other(res['message']['ts'])
-        user.set_question_msg(ms.self_ref.START + '\n' + ms.self_ref.TYPE_SELECT)
+        user.set_question_msg(ms.self_ref.M_1)
         user.set_session_stage(2)
         user.set_session_type(StatusType.SELF_REF)
 

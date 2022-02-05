@@ -14,11 +14,11 @@ def self_ref_exp(line_bot_api, user, event):
             user.reset_answer_msg()
         if text == 'Yes':
             user.set_session_stage(5)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.EXP_3_YES))
+            line.reply_msg(line_bot_api, event, ms.self_ref.EXP_3_YES)
             user.set_question_msg(ms.self_ref.EXP_3_YES)
         elif text == 'No':
             user.set_session_stage(4)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=ms.self_ref.EXP_3_NO))
+            line.reply_msg(line_bot_api, event, ms.self_ref.EXP_3_NO)
             user.set_question_msg(ms.self_ref.EXP_3_NO)
     elif text == ms.default.KEY_NEXT:
         slack.send_msg_to_other_thread(user)
