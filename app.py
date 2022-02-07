@@ -81,7 +81,7 @@ def index():
     if 'event' in data:
         event = data['event']
         app.logger.info(event)
-        reply_contact(event)
+        reply_to_user(event)
     return 'OK'
 
 
@@ -175,7 +175,7 @@ def handle_text_message(event):
     db.session.commit()
 
 
-def reply_contact(event):
+def reply_to_user(event):
     if 'bot_id' not in event and 'thread_ts' in event:
         thread_ts = event['thread_ts']
         channel = event['channel']
