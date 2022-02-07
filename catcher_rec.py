@@ -105,7 +105,6 @@ def get_rec(user_id):
             return c.catcher_id
 
 
-def get_common_tags(user_id, catcher_id):
-    used_tags = set(t.tag_id for t in UsedTag.query.filter_by(user_id=user_id).all())
+def get_catcher_tags(user_id, catcher_id):
     catcher_tags = set(ct.tag_id for ct in CatcherTag.query.filter_by(catcher_id=catcher_id).all())
-    return used_tags & catcher_tags
+    return catcher_tags

@@ -53,10 +53,10 @@ def get_catcher(uid):
     return msg
 
 
-def get_common_tags_msg(common_tags):
+def get_catcher_tags_msg(catcher_tags):
     msg = io.StringIO()
     msg.write(COMMON_TAG)
-    for tag in common_tags:
+    for tag in catcher_tags:
         msg.write('\n・' + const.tag.tags[tag])
     return msg.getvalue()
 

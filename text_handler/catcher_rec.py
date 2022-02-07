@@ -3,7 +3,7 @@ import message as ms
 import catcher_rec as cr
 from models import User
 import slack
-from line.reply_msg import send_single_msg
+import line
 
 
 def catcher_rec(line_bot_api, user, event):
@@ -64,9 +64,9 @@ def send_rec(line_bot_api, user: User, event, catcher_id):
     slack.send_msg_to_other_thread(user)
     catcher = ms.catcher_rec.get_catcher(catcher_id)
 
-    common_tags = cr.get_common_tags(user.get_id(), catcher_id)
-    common_tags_msg = ms.catcher_rec.get_common_tags_msg(common_tags)
-    send_single_msg(line_bot_api, user.get_id(), common_tags_msg)
+    catcher_tags = cr.get_catcher_tags(user.get_id(), catcher_id)
+    catcher_tags_msg = ms.catcher_rec.get_catcher_tags_msg(catcher_tags)
+    line.send_single_msg(line_bot_api, user.get_id(), catcher_tags_msg)
 
     line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text="catcher profile",
                                                                   contents=catcher))
@@ -76,6 +76,6 @@ def send_rec(line_bot_api, user: User, event, catcher_id):
                           + 'Name: ' + catcher.body.contents[0].text + '\n'
                           + 'Work: ' + catcher.body.contents[1].contents[0].contents[1].text + '\n'
                           + 'Job: ' + catcher.body.contents[1].contents[1].contents[1].text + '\n'
-                          + common_tags_msg + '\n'
+                          + catcher_tags_msg + '\n'
                           + '```' + '\n'
                           + ms.catcher_rec.CONFIRM_TEXT)
