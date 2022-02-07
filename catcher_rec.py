@@ -103,3 +103,8 @@ def get_rec(user_id):
                 break
         if satis:
             return c.catcher_id
+
+
+def get_catcher_tags(user_id, catcher_id):
+    catcher_tags = set(ct.tag_id for ct in CatcherTag.query.filter_by(catcher_id=catcher_id).all())
+    return catcher_tags
