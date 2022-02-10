@@ -1,6 +1,7 @@
 import logging
 import sys
 import json
+import time
 
 import schedule as schedule
 from flask import Flask, abort, request, Response
@@ -90,6 +91,7 @@ def callback():
     signature = request.headers['X-Line-Signature']
 
     body = request.get_data(as_text=True)
+    print(time.time())
 
     try:
         handler.handle(body, signature)
