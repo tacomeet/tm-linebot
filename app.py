@@ -2,6 +2,7 @@ import logging
 import sys
 import json
 import time
+from datetime import datetime, timedelta
 
 import schedule as schedule
 from flask import Flask, abort, request, Response
@@ -91,7 +92,6 @@ def callback():
     signature = request.headers['X-Line-Signature']
 
     body = request.get_data(as_text=True)
-    print(time.time())
 
     try:
         handler.handle(body, signature)
@@ -155,6 +155,14 @@ def handle_text_message(event):
 
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()
+    last_handled_timestamp = user.get_last_handled_timestamp()
+    if last_handled_timestamp is not None:
+        diff = datetime.now() - last_handled_timestamp
+        if diff < timedelta(seconds=2):
+            return
+
+    user.set_last_handled_timestamp()
+    db.session.commit()
 
     if ss_stage != 0 and text == ms.default.KEY_END:
         spreadsheet.record_goal_rate(user, worksheet_goal_rate, False)
