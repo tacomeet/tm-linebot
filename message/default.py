@@ -1,4 +1,4 @@
-from linebot.models import TemplateSendMessage, MessageAction, ButtonsTemplate
+from linebot.models import TemplateSendMessage, MessageAction, ButtonsTemplate, ConfirmTemplate
 
 KEY_END = '終了'
 END = 'ありがとうございました！またのご利用をお待ちしております！'
@@ -19,3 +19,15 @@ MENU = TemplateSendMessage(
         ]))
 
 ASK_FOR_NEXT = '終わり次第「次」と入力して次の質問に行けます！'
+
+PERMISSION_FOR_FEEDBACK = TemplateSendMessage(
+    template=ConfirmTemplate(
+        actions=[
+            MessageAction(label='Yes', text='Yes'),
+            MessageAction(label='No', text='No'),
+        ], text='以上で終了です！\n'
+                'この振り返りを次のステップに繋げましょう！\n'
+                '運営からのフィードバックを希望しますか？'),
+    alt_text='以上で終了です！\n'
+             'この振り返りを次のステップに繋げましょう！\n'
+             '運営からのフィードバックを希望しますか？')

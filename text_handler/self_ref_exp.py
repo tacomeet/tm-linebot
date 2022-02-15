@@ -20,6 +20,10 @@ def self_ref_exp(line_bot_api, user, event):
             user.set_session_stage(4)
             line.reply_msg(line_bot_api, event, ms.self_ref.EXP_3_NO)
             user.set_question_msg(ms.self_ref.EXP_3_NO)
+    elif ss_stage == 11:
+        if text in ['Yes', 'No']:
+            slack.send_msg_to_other_thread(user)
+            user.reset()
     elif text == ms.default.KEY_NEXT:
         slack.send_msg_to_other_thread(user)
         user.reset_answer_msg()
@@ -45,13 +49,8 @@ def _route_next(user):
         msg = ms.self_ref.EXP_8
     elif ss_stage == 9:
         msg = ms.self_ref.EXP_9
-    if msg:
-        user.set_question_msg(msg)
-        user.increment_session_stage()
-        return msg
-    if ss_stage == 10:
-        user.reset_answer_msg()
-        user.set_question_msg(ms.default.END)
-        slack.send_msg_to_other_thread(user)
-        user.reset()
-        return ms.default.END
+    elif ss_stage == 10:
+        msg = ms.default.PERMISSION_FOR_FEEDBACK
+    user.set_question_msg(msg)
+    user.increment_session_stage()
+    return msg
