@@ -1,6 +1,8 @@
 import logging
 import sys
 import json
+import time
+from datetime import datetime, timedelta
 
 import schedule as schedule
 from flask import Flask, abort, request, Response
@@ -150,6 +152,14 @@ def handle_text_message(event):
         db.session.add(user)
         db.session.commit()
         user = User.query.get(user_id)
+
+    last_handled_timestamp = user.get_last_handled_timestamp()
+    if last_handled_timestamp is not None:
+        diff = datetime.now() - last_handled_timestamp
+        if diff < timedelta(seconds=2):
+            return
+    user.set_last_handled_timestamp()
+    db.session.commit()
 
     ss_stage = user.get_session_stage()
     ss_type = user.get_session_type()

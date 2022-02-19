@@ -14,7 +14,7 @@ CONFIRM = TemplateSendMessage(
             MessageAction(label='Yes', text='Yes'),
             MessageAction(label='No', text='No'),
         ]))
-COMMON_TAG = 'キャッチャーとの共通の項目'
+COMMON_TAG = 'ロールモデルとの共通の項目'
 CONFIRM_TEXT = 'この方はどうでしょうか？'
 SORRY = 'ごめんなさい！マッチする人が現状はいません。\n' \
         '運営に連絡くだされば、なんとか探します！'

@@ -63,7 +63,7 @@ def _route_next(user):
         return msg
     if ss_stage == 12:
         user.reset_answer_msg()
-        user.set_question_msg(ms.default.END)
+        user.set_question_msg(ms.default.PERMISSION_FOR_FEEDBACK)
         slack.send_msg_to_other_thread(user)
         user.reset()
-        return ms.default.END
+        return ms.default.PERMISSION_FOR_FEEDBACK
