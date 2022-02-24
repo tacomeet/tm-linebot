@@ -18,6 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import const
+import line
 import text_handler as th
 from models.status_type import StatusType
 import models.status_type as st
@@ -156,6 +157,7 @@ def handle_text_message(event):
     if last_handled_timestamp is not None:
         diff = datetime.now() - last_handled_timestamp
         if diff < timedelta(seconds=const.SEC_TO_IGNORE_MESSAGES):
+            line.reply_msg(line_bot_api, event, ms.default.TOO_FAST)
             return
     user.set_last_handled_timestamp()
     db.session.commit()
