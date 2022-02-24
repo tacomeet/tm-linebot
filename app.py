@@ -1,7 +1,6 @@
 import logging
 import sys
 import json
-import time
 from datetime import datetime, timedelta
 
 import schedule as schedule
@@ -18,6 +17,7 @@ from linebot.models import (
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import const
 import text_handler as th
 from models.status_type import StatusType
 import models.status_type as st
@@ -25,7 +25,6 @@ import config
 from database.database import init_db, db
 import message as ms
 import slack
-import models
 from models import User
 import catcher_rec as cr
 import spreadsheet
@@ -156,7 +155,7 @@ def handle_text_message(event):
     last_handled_timestamp = user.get_last_handled_timestamp()
     if last_handled_timestamp is not None:
         diff = datetime.now() - last_handled_timestamp
-        if diff < timedelta(seconds=2):
+        if diff < timedelta(seconds=const.SEC_TO_IGNORE_MESSAGES):
             return
     user.set_last_handled_timestamp()
     db.session.commit()
