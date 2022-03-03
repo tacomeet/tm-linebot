@@ -1,6 +1,7 @@
 import logging
 import sys
 import json
+import time
 from datetime import datetime, timedelta
 
 import schedule as schedule
@@ -17,9 +18,9 @@ from linebot.models import (
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-import const
 import line
 import text_handler as th
+from const import SEC_TO_IGNORE_MESSAGES
 from models.status_type import StatusType
 import models.status_type as st
 import config
@@ -156,8 +157,10 @@ def handle_text_message(event):
     last_handled_timestamp = user.get_last_handled_timestamp()
     if last_handled_timestamp is not None:
         diff = datetime.now() - last_handled_timestamp
-        if diff < timedelta(seconds=const.SEC_TO_IGNORE_MESSAGES):
+        if diff < timedelta(seconds=SEC_TO_IGNORE_MESSAGES):
+            time.sleep(1)
             line.reply_msg(line_bot_api, event, ms.default.TOO_FAST)
+            user.set_question_msg(ms.default.TOO_FAST)
             return
     user.set_last_handled_timestamp()
     db.session.commit()
