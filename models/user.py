@@ -18,7 +18,7 @@ class User(db.Model):
     last_question_id = db.Column(db.Integer())
     created_at = db.Column(db.DateTime(), default=datetime.now)
     session_start_timestamp = db.Column(db.DateTime())
-    last_handled_timestamp = db.Column(db.DateTime())
+    done_replying = db.Column(db.Boolean())
 
     def __init__(self, id, name, session_type=None, session_stage=0):
         self.id = id
@@ -32,6 +32,7 @@ class User(db.Model):
         self.last_question_id = None
         self.session_start_timestamp = None
         self.last_handled_timestamp = None
+        self.done_replying = True
 
     def reset(self):
         self.answer_msg = None
@@ -115,8 +116,8 @@ class User(db.Model):
     def get_session_start_timestamp(self):
         return self.session_start_timestamp
 
-    def set_last_handled_timestamp(self):
-        self.last_handled_timestamp = datetime.now()
+    def get_done_replying(self):
+        return self.done_replying
 
-    def get_last_handled_timestamp(self):
-        return self.last_handled_timestamp
+    def set_done_replying(self, done_replying):
+        self.done_replying = done_replying

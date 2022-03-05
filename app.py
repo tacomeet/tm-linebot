@@ -154,15 +154,19 @@ def handle_text_message(event):
         db.session.commit()
         user = User.query.get(user_id)
 
-    last_handled_timestamp = user.get_last_handled_timestamp()
-    if last_handled_timestamp is not None:
-        diff = datetime.now() - last_handled_timestamp
-        if diff < timedelta(seconds=SEC_TO_IGNORE_MESSAGES):
-            time.sleep(1)
-            line.reply_msg(line_bot_api, event, ms.default.TOO_FAST)
-            user.set_question_msg(ms.default.TOO_FAST)
-            return
-    user.set_last_handled_timestamp()
+    done_replying = user.get_done_replying()
+    if done_replying is False:
+        print('NOT DONE REPLYING')
+
+        # while user.get_done_replying() is False:
+        #     print('waiting for user to finish replying')
+        #     user = User.query.get(user_id)
+        #     time.sleep(0.5)
+        # print('finished!!!!!!!!!!')
+        # line.reply_msg(line_bot_api, event, ms.default.TOO_FAST)
+        # user.set_question_msg(ms.default.TOO_FAST)
+        return
+    user.set_done_replying(False)
     db.session.commit()
 
     ss_stage = user.get_session_stage()
@@ -186,6 +190,7 @@ def handle_text_message(event):
         th.self_ref(line_bot_api, user, event)
     elif st.is_included(StatusType.BN_CREATE, ss_type):
         th.bn_create(line_bot_api, user, event)
+    user.set_done_replying(True)
     db.session.commit()
 
 
