@@ -1,7 +1,6 @@
 import logging
 import sys
 import json
-import time
 from datetime import datetime, timedelta
 
 import schedule as schedule
@@ -146,27 +145,24 @@ def handle_text_message(event):
     user_id = event.source.user_id
 
     # get user from db
-    user = User.query.get(user_id)
+    user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
     if user is None:
+        db.session.expunge_all()
         profile = line_bot_api.get_profile(user_id)
         user = User(id=user_id, name=profile.display_name)
         db.session.add(user)
         db.session.commit()
-        user = User.query.get(user_id)
+        user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
 
-    done_replying = user.get_done_replying()
-    if done_replying is False:
-        print('NOT DONE REPLYING')
-
-        # while user.get_done_replying() is False:
-        #     print('waiting for user to finish replying')
-        #     user = User.query.get(user_id)
-        #     time.sleep(0.5)
-        # print('finished!!!!!!!!!!')
-        # line.reply_msg(line_bot_api, event, ms.default.TOO_FAST)
-        # user.set_question_msg(ms.default.TOO_FAST)
-        return
-    user.set_done_replying(False)
+    message_recieved_timestamp = datetime.now()
+    last_handled_timestamp = user.get_last_handled_timestamp()
+    if last_handled_timestamp is not None:
+        diff = message_recieved_timestamp - last_handled_timestamp
+        if diff < timedelta(seconds=SEC_TO_IGNORE_MESSAGES):
+            line.send_single_msg(line_bot_api, user.get_id(), ms.default.TOO_FAST)
+            db.session.expunge_all()
+            return
+    user.set_last_handled_timestamp()
     db.session.commit()
 
     ss_stage = user.get_session_stage()
@@ -190,8 +186,8 @@ def handle_text_message(event):
         th.self_ref(line_bot_api, user, event)
     elif st.is_included(StatusType.BN_CREATE, ss_type):
         th.bn_create(line_bot_api, user, event)
-    user.set_done_replying(True)
     db.session.commit()
+    db.session.expunge_all()
 
 
 def reply_to_user(event):
