@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 
 import schedule as schedule
+import sqlalchemy.exc
 from flask import Flask, abort, request, Response
 from linebot import (
     LineBotApi, WebhookHandler
@@ -145,19 +146,20 @@ def handle_text_message(event):
     user_id = event.source.user_id
 
     # get user from db
-    user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
-    if user is None:
-        db.session.expunge_all()
+    try:
+        user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
+    except sqlalchemy.exc.NoResultFound:
+        # db.session.expunge_all()
         profile = line_bot_api.get_profile(user_id)
         user = User(id=user_id, name=profile.display_name)
         db.session.add(user)
         db.session.commit()
         user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
 
-    message_recieved_timestamp = datetime.now()
+    message_received_timestamp = datetime.now()
     last_handled_timestamp = user.get_last_handled_timestamp()
     if last_handled_timestamp is not None:
-        diff = message_recieved_timestamp - last_handled_timestamp
+        diff = message_received_timestamp - last_handled_timestamp
         if diff < timedelta(seconds=SEC_TO_IGNORE_MESSAGES):
             line.send_single_msg(line_bot_api, user.get_id(), ms.default.TOO_FAST)
             db.session.expunge_all()
