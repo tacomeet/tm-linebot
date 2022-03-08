@@ -145,6 +145,10 @@ def handle_text_message(event):
     text = event.message.text
     user_id = event.source.user_id
 
+    # Record timestamp that message was received
+    # before accessing the DB (locking user record)
+    message_received_timestamp = datetime.now()
+
     # get user from db
     try:
         user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
@@ -156,7 +160,6 @@ def handle_text_message(event):
         db.session.commit()
         user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
 
-    message_received_timestamp = datetime.now()
     last_handled_timestamp = user.get_last_handled_timestamp()
     if last_handled_timestamp is not None:
         diff = message_received_timestamp - last_handled_timestamp
