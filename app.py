@@ -1,10 +1,10 @@
 import logging
 import sys
 import json
-import time
 from datetime import datetime, timedelta
 
 import schedule as schedule
+import sqlalchemy.exc
 from flask import Flask, abort, request, Response
 from linebot import (
     LineBotApi, WebhookHandler
@@ -18,14 +18,15 @@ from linebot.models import (
 from sqlalchemy.exc import IntegrityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import line
 import text_handler as th
+from const import SEC_TO_IGNORE_MESSAGES
 from models.status_type import StatusType
 import models.status_type as st
 import config
 from database.database import init_db, db
 import message as ms
 import slack
-import models
 from models import User
 import catcher_rec as cr
 import spreadsheet
@@ -144,19 +145,27 @@ def handle_text_message(event):
     text = event.message.text
     user_id = event.source.user_id
 
+    # Record timestamp that message was received
+    # before accessing the DB (locking user record)
+    message_received_timestamp = datetime.now()
+
     # get user from db
-    user = User.query.get(user_id)
-    if user is None:
+    try:
+        user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
+    except sqlalchemy.exc.NoResultFound:
+        # db.session.expunge_all()
         profile = line_bot_api.get_profile(user_id)
         user = User(id=user_id, name=profile.display_name)
         db.session.add(user)
         db.session.commit()
-        user = User.query.get(user_id)
+        user = db.session.query(User).filter(User.id == user_id).with_for_update().one()
 
     last_handled_timestamp = user.get_last_handled_timestamp()
     if last_handled_timestamp is not None:
-        diff = datetime.now() - last_handled_timestamp
-        if diff < timedelta(seconds=2):
+        diff = message_received_timestamp - last_handled_timestamp
+        if diff < timedelta(seconds=SEC_TO_IGNORE_MESSAGES):
+            line.send_single_msg(line_bot_api, user.get_id(), ms.default.TOO_FAST)
+            db.session.expunge_all()
             return
     user.set_last_handled_timestamp()
     db.session.commit()
@@ -183,6 +192,7 @@ def handle_text_message(event):
     elif st.is_included(StatusType.BN_CREATE, ss_type):
         th.bn_create(line_bot_api, user, event)
     db.session.commit()
+    db.session.expunge_all()
 
 
 def reply_to_user(event):

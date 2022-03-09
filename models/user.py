@@ -115,8 +115,8 @@ class User(db.Model):
     def get_session_start_timestamp(self):
         return self.session_start_timestamp
 
-    def set_last_handled_timestamp(self):
-        self.last_handled_timestamp = datetime.now()
-
     def get_last_handled_timestamp(self):
         return self.last_handled_timestamp
+
+    def set_last_handled_timestamp(self):
+        self.last_handled_timestamp = datetime.now()
